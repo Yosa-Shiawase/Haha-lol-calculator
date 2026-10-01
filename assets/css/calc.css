@@ -213,7 +213,7 @@
 /* ---- the pad ---- */
 
 .padpage {
-  display: none;
+  display: inline-block;
   margin-bottom: 10px;
   padding: 9px 18px;
   border: var(--bw) solid var(--ink);
@@ -230,6 +230,12 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
+
+/* one keypad page at a time, at every width: 39 keys stacked pushes the
+   bottom row past a 900px viewport */
+.pad--fn { display: none; }
+.calc[data-pad='fn'] .pad--fn { display: grid; }
+.calc[data-pad='fn'] .pad--main { display: none; }
 
 .pad--fn { margin-bottom: 10px; }
 
@@ -480,12 +486,6 @@
   }
 
   .switch { min-width: 118px; pointer-events: auto; }
-
-  /* the keypad lives in the bottom half, one page at a time */
-  .pad--fn { display: none; }
-  .calc[data-pad='fn'] .pad--fn { display: grid; }
-  .calc[data-pad='fn'] .pad--main { display: none; }
-  .padpage { display: inline-block; }
 
   /* steps open as a bottom sheet */
   .drawer {
