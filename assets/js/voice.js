@@ -1,8 +1,6 @@
-/* ==========================================================================
-   voice.js — Kitsu's mouth. Strictly opt-in.
-   Nothing here ever runs until the speaker is switched on, and every
-   capability check degrades silently: no speech on the page, no errors.
-   ========================================================================== */
+/* voice.js — Kitsu's mouth. Strictly opt-in.
+   Nothing here runs until the speaker is switched on, and every capability
+   check degrades silently: no speech on the page, no errors. */
 
 (function () {
   'use strict';
@@ -98,9 +96,7 @@
     synth.speak(utter);
   }
 
-  /* ------------------------------------------------------------------ *
-   * speech in: "two plus three times four" -> 2 + 3 * 4
-   * ------------------------------------------------------------------ */
+  /* speech in: "two plus three times four" -> 2 + 3 * 4 */
 
   var NUMBERS = {
     zero: '0', one: '1', two: '2', three: '3', four: '4', five: '5', six: '6',
@@ -174,9 +170,7 @@
     }
   }
 
-  /* ------------------------------------------------------------------ *
-   * wiring
-   * ------------------------------------------------------------------ */
+  /* wiring */
 
   function syncMic() {
     var btn = document.querySelector('[data-mic]');
