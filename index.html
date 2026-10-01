@@ -55,6 +55,7 @@
 </header>
 
 <main id="main" class="page">
+
   <section class="hero wrap">
     <div class="hero__copy">
       <p class="eyebrow">Kitsu&rsquo;s calculator</p>
@@ -64,7 +65,7 @@
         operations with you — step by step, out loud if you want her to.</p>
       <p class="hero__cta">
         <a class="btn btn--fox btn--lg" href="calc.html">Open the calculator</a>
-        <a class="btn btn--lg" href="about.html">How Kitsu thinks</a>
+        <a class="btn btn--lg" href="#minipad">Try one right here</a>
       </p>
       <ul class="ticks">
         <li>DEG / RAD toggle</li>
@@ -75,25 +76,100 @@
     </div>
     <figure class="hero__fox" data-reveal>
       <div data-kitsu="hero" data-line="Blink twice if you need me."></div>
-      <figcaption class="hero__cap">Kitsu, mid-thought. She blinks roughly every three seconds.</figcaption>
+      <figcaption class="hero__cap">Kitsu, mid-thought. She blinks roughly every three seconds, and she is watching your cursor.</figcaption>
     </figure>
   </section>
 
-  <section class="hero__more wrap" aria-hidden="false">
-    <hr class="rule">
-    <p class="hero__next">
-      <a href="#story">The maths, step by step
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
-          <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M12 4v15m0 0l-6-6m6 6l6-6"/>
-        </svg>
-      </a>
+  <section class="beat wrap" id="minipad" data-reveal>
+    <div class="beat__copy">
+      <p class="eyebrow">Not a screenshot</p>
+      <h2>Three keys. Real answers.</h2>
+      <p class="lede">These are the actual engine, the actual narrator. Press one and
+        watch her show her work.</p>
+    </div>
+
+    <div class="minipad">
+      <button type="button" class="key key--big" data-go="7 &times; 8">7 &times; 8</button>
+      <button type="button" class="key key--big" data-go="2 + 3 &times; 4">2 + 3 &times; 4</button>
+      <button type="button" class="key key--big" data-go="sin(30)">sin(30)</button>
+    </div>
+
+    <div class="minipad__screen card">
+      <p class="minipad__expr" data-pad-expr>Pick a key</p>
+      <output class="minipad__val" data-pad-out aria-live="polite">Kitsu is waiting</output>
+      <ol class="minipad__steps" data-pad-steps></ol>
+    </div>
+  </section>
+
+  <section class="math" id="story">
+    <div class="math__sticky">
+      <div class="math__card card">
+        <p class="eyebrow">Order of operations</p>
+        <h2 class="math__title">2 + 3 &times; 4, four ways</h2>
+        <ol class="math__stages" data-stages>
+          <li class="math__stage is-on" data-stage="0">
+            <p class="math__label">1 &middot; first, the tokens</p>
+            <p class="math__tokens" data-tokens></p>
+          </li>
+          <li class="math__stage" data-stage="1">
+            <p class="math__label">2 &middot; then the tree</p>
+            <pre class="math__tree" data-tree></pre>
+          </li>
+          <li class="math__stage" data-stage="2">
+            <p class="math__label">3 &middot; then the climb</p>
+            <ol class="math__steps" data-steps></ol>
+          </li>
+          <li class="math__stage" data-stage="3">
+            <p class="math__label">4 &middot; and the answer</p>
+            <p class="math__answer" data-answer>14</p>
+            <p class="math__aside" data-aside></p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="beat wrap" id="kitsu" data-reveal>
+    <div class="beat__copy">
+      <p class="eyebrow">Meet Kitsu</p>
+      <h2>Four moods, no poker face.</h2>
+      <p class="lede">She tells you what she is doing: thinking while you build an
+        expression, pleased when it lands, and gentle when the brackets go astray.
+        Click her anywhere for a hop.</p>
+    </div>
+    <div class="gallery">
+      <figure class="moodcard" data-kitsu="m-idle" data-static data-mood="idle"
+              data-line="Blink twice if you need me.">
+        <figcaption><b>idle</b> waiting for something to climb</figcaption>
+      </figure>
+      <figure class="moodcard" data-kitsu="m-think" data-static data-mood="think"
+              data-line="Order of operations is a ladder, not a pile. Climbing…">
+        <figcaption><b>think</b> mid-expression</figcaption>
+      </figure>
+      <figure class="moodcard" data-kitsu="m-happy" data-static data-mood="happy"
+              data-line="Solved — and I showed my work.">
+        <figcaption><b>happy</b> it landed</figcaption>
+      </figure>
+      <figure class="moodcard" data-kitsu="m-oops" data-static data-mood="oops"
+              data-line="A bracket went missing. I counted twice.">
+        <figcaption><b>oops</b> a bracket wandered off</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="closer wrap" data-reveal>
+    <h2 class="closer__title">She is ready when you are.</h2>
+    <p class="closer__cta">
+      <a class="btn btn--fox btn--lg" href="calc.html" data-wipe>Open the calculator</a>
+      <a class="btn btn--lg" href="about.html">Read how she works</a>
     </p>
   </section>
+
 </main>
 
 <footer class="foot">
   <div class="wrap foot__in">
-    <p>Built by hand with plain HTML, CSS and JavaScript. No frameworks, no build step.</p>
+    <p>Built by hand with plain HTML, CSS and JavaScript. No frameworks, no build step, no tracking.</p>
     <p class="foot__seal">
       <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
         <path fill="#E0511A" d="M34 72 L26 16 L86 46 Z"/>
@@ -107,7 +183,11 @@
   </div>
 </footer>
 
+<div class="wipe" data-wipe-layer aria-hidden="true"><span class="wipe__mark">Kitsu</span></div>
+
 <script src="assets/js/fox.js" defer></script>
+<script src="assets/js/engine.js" defer></script>
+<script src="assets/js/story.js" defer></script>
 <script src="assets/js/background.js" defer></script>
 </body>
 </html>
