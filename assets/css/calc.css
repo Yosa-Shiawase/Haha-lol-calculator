@@ -125,11 +125,10 @@
   font-family: var(--mono);
   font-size: clamp(1rem, 1.6vw, 1.3rem);
   font-weight: 700;
-  color: var(--ink-60);
+  color: var(--ink);
   min-height: 1.4em;
 }
 
-.display__value.is-answer { color: var(--ink); }
 .display__value.is-error { color: var(--err); }
 
 .display.is-bursting .display__value {
@@ -394,6 +393,7 @@
    ========================================================================== */
 
 .speaker {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -514,7 +514,17 @@
   .key { min-height: 48px; font-size: 1rem; }
   .key--op { font-size: 1.15rem; }
   .key--fn { font-size: .92rem; }
-  .speaker span { display: none; }
+
+  /* the label goes, but it stays available to a screen reader */
+  .speaker span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   .speaker { padding: 9px 11px; }
 }
 
