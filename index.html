@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kitsu — a scientific calculator that shows its work</title>
+<meta name="description" content="A scientific calculator with a fox who narrates every solve. Order of operations explained out loud, a DEG/RAD toggle, a history tape and keyboard shortcuts.">
+<meta name="theme-color" content="#F3ECDF">
+<link rel="canonical" href="https://haha-lol-calculator.onrender.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kitsu">
+<meta property="og:title" content="Kitsu — a scientific calculator that shows its work">
+<meta property="og:description" content="Goodbye, boring calculator. A fox named Kitsu narrates every solve, step by step.">
+<meta property="og:url" content="https://haha-lol-calculator.onrender.com/">
+<meta property="og:image" content="https://haha-lol-calculator.onrender.com/assets/img/og-kitsu.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kitsu — a scientific calculator that shows its work">
+<meta name="twitter:description" content="Goodbye, boring calculator. A fox named Kitsu narrates every solve, step by step.">
+<meta name="twitter:image" content="https://haha-lol-calculator.onrender.com/assets/img/og-kitsu.png">
+<link rel="icon" href="assets/img/fox.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<script>document.documentElement.className += ' js';</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="mast">
+  <div class="wrap mast__in">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+        <path fill="#E0511A" d="M34 72 L26 16 L86 46 Z"/>
+        <path fill="#E0511A" d="M166 72 L174 16 L114 46 Z"/>
+        <path fill="#191411" d="M26 16 L32 37 L51 29 Z"/>
+        <path fill="#191411" d="M174 16 L168 37 L149 29 Z"/>
+        <path fill="#E0511A" d="M100 40 C138 40 164 62 168 92 C172 122 156 148 129 159 C120 163 110 165 100 165 C90 165 80 163 71 159 C44 148 28 122 32 92 C36 62 62 40 100 40 Z"/>
+        <path fill="#FAF5EA" d="M100 96 C126 96 142 110 142 128 C142 146 123 157 100 157 C77 157 58 146 58 128 C58 110 74 96 100 96 Z"/>
+        <circle fill="#191411" cx="75" cy="90" r="7.4"/>
+        <circle fill="#191411" cx="125" cy="90" r="7.4"/>
+        <circle fill="#FAF5EA" cx="71.6" cy="86.6" r="2.7"/>
+        <circle fill="#FAF5EA" cx="121.6" cy="86.6" r="2.7"/>
+        <path fill="#191411" d="M92 110 Q100 105 108 110 Q107 121 100 124 Q93 121 92 110 Z"/>
+        <path fill="none" stroke="#191411" stroke-width="5" stroke-linecap="round" d="M92 134 Q100 140 108 134"/>
+      </svg>
+      <span>Kitsu<b>.</b></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="calc.html">Calculator</a>
+      <a href="about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page">
+  <section class="hero wrap">
+    <div class="hero__copy">
+      <p class="eyebrow">Kitsu&rsquo;s calculator</p>
+      <h1 class="hero__title">Goodbye, <span class="strike">boring</span> calculator.</h1>
+      <p class="lede">A scientific calculator with a fox who narrates every solve.
+        Type <span class="mono">2 + 3 &times; 4</span> and Kitsu walks down the ladder of
+        operations with you — step by step, out loud if you want her to.</p>
+      <p class="hero__cta">
+        <a class="btn btn--fox btn--lg" href="calc.html">Open the calculator</a>
+        <a class="btn btn--lg" href="about.html">How Kitsu thinks</a>
+      </p>
+      <ul class="ticks">
+        <li>DEG / RAD toggle</li>
+        <li>12 functions</li>
+        <li>History tape</li>
+        <li>No tracking</li>
+      </ul>
+    </div>
+    <figure class="hero__fox" data-reveal>
+      <div data-kitsu="hero" data-line="Blink twice if you need me."></div>
+      <figcaption class="hero__cap">Kitsu, mid-thought. She blinks roughly every three seconds.</figcaption>
+    </figure>
+  </section>
+
+  <section class="hero__more wrap" aria-hidden="false">
+    <hr class="rule">
+    <p class="hero__next">
+      <a href="#story">The maths, step by step
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+          <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M12 4v15m0 0l-6-6m6 6l6-6"/>
+        </svg>
+      </a>
+    </p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <p>Built by hand with plain HTML, CSS and JavaScript. No frameworks, no build step.</p>
+    <p class="foot__seal">
+      <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+        <path fill="#E0511A" d="M34 72 L26 16 L86 46 Z"/>
+        <path fill="#E0511A" d="M166 72 L174 16 L114 46 Z"/>
+        <path fill="#191411" d="M100 40 C138 40 164 62 168 92 C172 122 156 148 129 159 C120 163 110 165 100 165 C90 165 80 163 71 159 C44 148 28 122 32 92 C36 62 62 40 100 40 Z"/>
+        <circle fill="#FAF5EA" cx="75" cy="90" r="6.5"/>
+        <circle fill="#FAF5EA" cx="125" cy="90" r="6.5"/>
+      </svg>
+      Kitsu
+    </p>
+  </div>
+</footer>
+
+<script src="assets/js/fox.js" defer></script>
+<script src="assets/js/background.js" defer></script>
+</body>
+</html>

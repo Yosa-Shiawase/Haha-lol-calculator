@@ -1,0 +1,4 @@
+# dev-only verification harness (headless browser checks)
+.verify/
+node_modules/
+.DS_Store
