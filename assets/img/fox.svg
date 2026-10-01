@@ -1,0 +1,122 @@
+<svg class="fox" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-labelledby="kitsutitle kitsudesc" data-mood="idle">
+  <title id="kitsutitle">Kitsu the fox</title>
+  <desc id="kitsudesc">A burnt-orange fox with dark ear tips, a cream muzzle and ink freckles. The drawing changes with the data-mood attribute.</desc>
+  <style>
+    .fox { --fox: #E0511A; --ink: #191411; --paper2: #FAF5EA; --err: #B3261E; }
+    .fox * { vector-effect: non-scaling-stroke; }
+    .fox .f { fill: var(--fox); }
+    .fox .i { fill: var(--ink); }
+    .fox .p { fill: var(--paper2); }
+    .fox .s { stroke: var(--ink); stroke-width: 5; stroke-linecap: round; fill: none; }
+    .fox .m-happy, .fox .m-wavy, .fox .m-flat, .fox .m-neutral,
+    .fox .b-think, .fox .b-oops, .fox .blush,
+    .fox .e-arc, .fox .e-x, .fox .track { opacity: 0; }
+    .fox[data-mood="idle"] .track,
+    .fox[data-mood="idle"] .m-neutral,
+    .fox[data-mood="think"] .track,
+    .fox[data-mood="think"] .m-flat,
+    .fox[data-mood="think"] .b-think { opacity: 1; }
+    .fox[data-mood="happy"] .m-happy,
+    .fox[data-mood="happy"] .e-arc,
+    .fox[data-mood="happy"] .blush { opacity: 1; }
+    .fox[data-mood="oops"] .m-wavy,
+    .fox[data-mood="oops"] .e-x,
+    .fox[data-mood="oops"] .b-oops { opacity: 1; }
+    .fox__tilt { transform-box: fill-box; transform-origin: 50% 88%; transition: transform 260ms cubic-bezier(.2,.8,.25,1); }
+    .fox[data-mood="oops"] .fox__tilt { transform: rotate(-5deg); }
+    .fox .pupilgrp { transform-box: fill-box; transform-origin: 50% 50%; transform: scaleY(var(--blink, 1)); }
+    .fox .track { transform-box: fill-box; transform-origin: 50% 50%; }
+  </style>
+
+  <g class="fox__tilt">
+      <!-- ears -->
+      <g class="ears">
+        <path class="f" d="M34 72 L26 16 L86 46 Z"/>
+        <path class="p" d="M39 62 L33 27 L73 48 Z"/>
+        <path class="i" d="M26 16 L32 37 L51 29 Z"/>
+        <path class="f" d="M166 72 L174 16 L114 46 Z"/>
+        <path class="p" d="M161 62 L167 27 L127 48 Z"/>
+        <path class="i" d="M174 16 L168 37 L149 29 Z"/>
+      </g>
+
+      <!-- head -->
+      <path class="f" d="M100 40 C138 40 164 62 168 92 C172 122 156 148 129 159 C120 163 110 165 100 165 C90 165 80 163 71 159 C44 148 28 122 32 92 C36 62 62 40 100 40 Z"/>
+
+      <!-- cream muzzle mask -->
+      <path class="p" d="M100 96 C126 96 142 110 142 128 C142 146 123 157 100 157 C77 157 58 146 58 128 C58 110 74 96 100 96 Z"/>
+
+      <!-- freckles -->
+      <g class="freckles i">
+        <circle cx="47" cy="120" r="3.4"/>
+        <circle cx="56" cy="132" r="3.4"/>
+        <circle cx="41" cy="106" r="3.4"/>
+        <circle cx="153" cy="120" r="3.4"/>
+        <circle cx="144" cy="132" r="3.4"/>
+        <circle cx="159" cy="106" r="3.4"/>
+      </g>
+
+      <!-- blush (happy only) -->
+      <g class="blush">
+        <ellipse class="f" cx="48" cy="98" rx="12" ry="8" opacity=".5"/>
+        <ellipse class="f" cx="152" cy="98" rx="12" ry="8" opacity=".5"/>
+      </g>
+
+      <!-- open eyes (idle + think) -->
+      <g class="track" data-eye="l">
+        <circle class="p" cx="75" cy="90" r="13"/>
+        <circle class="i" cx="75" cy="90" r="13" fill="none" stroke="var(--ink)" stroke-width="2.5"/>
+        <g class="pupilgrp">
+          <circle class="i" cx="75" cy="90" r="7.4"/>
+          <circle class="p" cx="71.6" cy="86.6" r="2.7"/>
+          <circle class="p" cx="79.4" cy="94" r="1.5"/>
+        </g>
+      </g>
+      <g class="track" data-eye="r">
+        <circle class="p" cx="125" cy="90" r="13"/>
+        <circle class="i" cx="125" cy="90" r="13" fill="none" stroke="var(--ink)" stroke-width="2.5"/>
+        <g class="pupilgrp">
+          <circle class="i" cx="125" cy="90" r="7.4"/>
+          <circle class="p" cx="121.6" cy="86.6" r="2.7"/>
+          <circle class="p" cx="129.4" cy="94" r="1.5"/>
+        </g>
+      </g>
+
+      <!-- happy arcs -->
+      <g class="e-arc s">
+        <path d="M62 94 Q75 78 88 94"/>
+        <path d="M112 94 Q125 78 138 94"/>
+      </g>
+
+      <!-- oops crosses -->
+      <g class="e-x s">
+        <path d="M65 82 L85 100 M85 82 L65 100"/>
+        <path d="M115 82 L135 100 M135 82 L115 100"/>
+      </g>
+
+      <!-- brows -->
+      <g class="s">
+        <g class="b-think">
+          <path d="M61 74 L84 68"/>
+          <path d="M139 74 L116 68"/>
+        </g>
+        <g class="b-oops">
+          <path d="M63 64 L84 58"/>
+          <path d="M137 64 L116 58"/>
+        </g>
+      </g>
+
+      <!-- nose -->
+      <path class="i" d="M92 110 Q100 105 108 110 Q107 121 100 124 Q93 121 92 110 Z"/>
+
+      <!-- mouths -->
+      <g class="mouths">
+        <path class="s m-neutral" d="M92 134 Q100 140 108 134"/>
+        <g class="m-happy">
+          <path class="i" d="M86 132 Q100 148 114 132 Q100 138 86 132 Z"/>
+          <ellipse class="f" cx="100" cy="140" rx="6" ry="4"/>
+        </g>
+        <path class="m-flat s" d="M91 134 L109 134"/>
+        <path class="m-wavy s" d="M88 134 q6 -7 12 0 t12 0"/>
+      </g>
+    </g>
+</svg>
