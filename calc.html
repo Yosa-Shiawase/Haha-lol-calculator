@@ -4,27 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The calculator — Kitsu</title>
-<meta name="description" content="A scientific calculator with a DEG/RAD toggle, a history tape, a keyboard map and a fox who narrates every solve step by step.">
+<meta name="description" content="A scientific calculator with a DEG/RAD toggle, a history tape and a fox who narrates every solve step by step. Keyboard shortcuts for digits, operators, Enter and Escape.">
 <meta name="theme-color" content="#F3ECDF">
 <link rel="canonical" href="https://haha-lol-calculator.onrender.com/calc.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kitsu">
 <meta property="og:title" content="The calculator — Kitsu">
-<meta property="og:description" content="DEG/RAD, a history tape, a full keyboard map, and a fox who shows every step.">
+<meta property="og:description" content="DEG/RAD, a history tape, full keyboard control, and a fox who shows every step.">
 <meta property="og:url" content="https://haha-lol-calculator.onrender.com/calc.html">
 <meta property="og:image" content="https://haha-lol-calculator.onrender.com/assets/img/og-kitsu.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The calculator — Kitsu">
-<meta name="twitter:description" content="DEG/RAD, a history tape, a full keyboard map, and a fox who shows every step.">
+<meta name="twitter:description" content="DEG/RAD, a history tape, full keyboard control, and a fox who shows every step.">
 <meta name="twitter:image" content="https://haha-lol-calculator.onrender.com/assets/img/og-kitsu.png">
 <link rel="icon" href="assets/img/fox.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/calc.css">
+<script>document.documentElement.className += ' js';</script>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#expr">Skip to the keypad</a>
 <div class="grain" aria-hidden="true"></div>
 
 <header class="mast">
@@ -50,32 +52,138 @@
       <a href="calc.html" aria-current="page">Calculator</a>
       <a href="about.html">About</a>
     </nav>
+    <button type="button" class="speaker" data-speak aria-pressed="false">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 9h4l5-4v14l-5-4H4z"/>
+        <path class="speaker__wave" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M17 8.5a5 5 0 010 7"/>
+      </svg>
+      <span data-speak-label>Speaker off</span>
+    </button>
   </div>
 </header>
 
-<main id="main" class="page">
-  <section class="wrap wrap--tight hero">
-    <p class="eyebrow">The calculator</p>
-    <h1 class="hero__title">The keypad is being built.</h1>
-    <p class="lede">Five columns, a DEG/RAD switch, a swipeable tape of everything you
-      have solved, and a drawer where Kitsu writes down every rung she climbed.</p>
-    <hr class="rule">
-    <p class="lede">When it lands you will be able to type
-      <span>sin(30)</span>, press <span>Enter</span>, and be told the answer is
-      0.5 because the switch says degrees.</p>
-    <p class="hero__cta">
-      <a class="btn btn--lg" href="index.html">Back to the start</a>
-      <a class="btn btn--lg" href="about.html">How it will work</a>
-    </p>
-  </section>
+<main class="page calc" id="calc" data-pad="main">
+  <h1 class="vh">The calculator</h1>
+  <div class="wrap calc__grid">
+
+    <aside class="dock" aria-label="Kitsu and settings">
+      <div class="dock__fox" data-kitsu="dock" data-line="Blink twice if you need me."></div>
+      <div class="dock__tools">
+        <div class="switch" role="group" aria-label="Angle mode">
+          <button type="button" class="switch__btn is-on" data-mode="deg" aria-pressed="true">DEG</button>
+          <button type="button" class="switch__btn" data-mode="rad" aria-pressed="false">RAD</button>
+        </div>
+        <button type="button" class="btn btn--sm" data-mic aria-pressed="false" hidden>Talk to Kitsu</button>
+      </div>
+    </aside>
+
+    <section class="core" aria-label="Calculator">
+      <div class="display">
+        <p class="display__label"><span data-angles>DEG</span> &middot; <span data-ops>implicit times on</span></p>
+        <input class="display__expr" id="expr" type="text" inputmode="text" autocomplete="off"
+               autocapitalize="off" autocorrect="off" spellcheck="false"
+               placeholder="2 + 3 &#215; 4" aria-label="Expression" aria-describedby="expr-help">
+        <output class="display__value" id="value" for="expr">Kitsu is waiting</output>
+        <p class="vh" id="expr-help">Type an expression, then press Enter to solve. Kitsu reads the steps aloud when the speaker is on.</p>
+      </div>
+
+      <div class="tape" role="group" aria-label="History tape">
+        <ol class="tape__list" id="tape">
+          <li class="tape__empty">Your solved expressions land here. Tap one to reuse it.</li>
+        </ol>
+      </div>
+
+      <button type="button" class="padpage" data-pad-toggle aria-pressed="false">
+        <span data-pad-label>fn</span>
+      </button>
+
+      <div class="pad pad--fn" aria-label="Scientific keys">
+        <button type="button" class="key key--fn" data-ins="sin(">sin</button>
+        <button type="button" class="key key--fn" data-ins="cos(">cos</button>
+        <button type="button" class="key key--fn" data-ins="tan(">tan</button>
+        <button type="button" class="key key--fn" data-ins="ln(">ln</button>
+        <button type="button" class="key key--fn" data-ins="log(">log</button>
+        <button type="button" class="key key--fn" data-ins="sqrt(">√</button>
+        <button type="button" class="key key--fn" data-append="^2">x²</button>
+        <button type="button" class="key key--fn" data-ins="^">xʸ</button>
+        <button type="button" class="key key--fn" data-ins="(">(</button>
+        <button type="button" class="key key--fn" data-ins=")">)</button>
+        <button type="button" class="key key--fn" data-ins="asin(">sin⁻¹</button>
+        <button type="button" class="key key--fn" data-ins="acos(">cos⁻¹</button>
+        <button type="button" class="key key--fn" data-ins="atan(">tan⁻¹</button>
+        <button type="button" class="key key--fn" data-ins="pi">π</button>
+        <button type="button" class="key key--fn" data-ins="e">e</button>
+        <button type="button" class="key key--fn" data-append="!">n!</button>
+        <button type="button" class="key key--fn" data-ins="abs(">abs</button>
+        <button type="button" class="key key--fn" data-ins="ans">ans</button>
+        <button type="button" class="key key--fn" data-append="^-1">1/x</button>
+        <button type="button" class="key key--fn" data-ins="10^">10^</button>
+      </div>
+
+      <div class="pad pad--main" aria-label="Keys">
+        <button type="button" class="key" data-ins="7">7</button>
+        <button type="button" class="key" data-ins="8">8</button>
+        <button type="button" class="key" data-ins="9">9</button>
+        <button type="button" class="key key--op" data-ins="/">÷</button>
+        <button type="button" class="key key--op key--clear" data-clear>C</button>
+        <button type="button" class="key" data-ins="4">4</button>
+        <button type="button" class="key" data-ins="5">5</button>
+        <button type="button" class="key" data-ins="6">6</button>
+        <button type="button" class="key key--op" data-ins="*">×</button>
+        <button type="button" class="key key--op" data-backspace>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 5h11v14H9L3 12z"/>
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M17 9.5l-5 5m0-5l5 5"/>
+          </svg>
+          <span class="vh">Backspace</span>
+        </button>
+        <button type="button" class="key" data-ins="1">1</button>
+        <button type="button" class="key" data-ins="2">2</button>
+        <button type="button" class="key" data-ins="3">3</button>
+        <button type="button" class="key key--op" data-ins="-">−</button>
+        <button type="button" class="key key--op" data-sign>±</button>
+        <button type="button" class="key key--wide" data-ins="0">0</button>
+        <button type="button" class="key" data-ins=".">.</button>
+        <button type="button" class="key key--op" data-ins="+">+</button>
+        <button type="button" class="key key--eq" data-solve>=</button>
+      </div>
+    </section>
+
+    <aside class="drawer" id="drawer" data-open="false" aria-label="Kitsu's steps">
+      <button type="button" class="drawer__tab" data-drawer aria-expanded="false" aria-controls="steps-panel">
+        <span class="drawer__tab-mark" aria-hidden="true">∑</span>
+        <span>Steps</span>
+        <span class="drawer__count" data-step-count>0</span>
+      </button>
+      <div class="drawer__panel" id="steps-panel">
+        <p class="drawer__hint" data-steps-hint>Solve something and Kitsu writes down every rung she climbed.</p>
+        <ol class="steps" id="steps"></ol>
+      </div>
+    </aside>
+
+  </div>
 </main>
 
 <footer class="foot">
   <div class="wrap foot__in">
-    <p>Ten functions, factorials, implicit multiplication and right-associative powers.</p>
+    <p>Every key works from the keyboard: digits, operators, <kbd>Enter</kbd> to solve, <kbd>Esc</kbd> to clear, <kbd>Backspace</kbd> to tidy.</p>
+    <p class="foot__seal">
+      <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+        <path fill="#E0511A" d="M34 72 L26 16 L86 46 Z"/>
+        <path fill="#E0511A" d="M166 72 L174 16 L114 46 Z"/>
+        <path fill="#191411" d="M100 40 C138 40 164 62 168 92 C172 122 156 148 129 159 C120 163 110 165 100 165 C90 165 80 163 71 159 C44 148 28 122 32 92 C36 62 62 40 100 40 Z"/>
+        <circle fill="#FAF5EA" cx="75" cy="90" r="6.5"/>
+        <circle fill="#FAF5EA" cx="125" cy="90" r="6.5"/>
+      </svg>
+      Kitsu
+    </p>
   </div>
 </footer>
 
+<script src="assets/js/fox.js" defer></script>
+<script src="assets/js/voice.js" defer></script>
+<script src="assets/js/engine.js" defer></script>
+<script src="assets/js/calc.js" defer></script>
 <script src="assets/js/background.js" defer></script>
 </body>
 </html>
