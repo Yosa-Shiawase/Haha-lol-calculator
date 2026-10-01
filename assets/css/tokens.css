@@ -378,21 +378,28 @@ section { position: relative; }
 
 .fox * { vector-effect: non-scaling-stroke; }
 
+/* each mood shows exactly one eye set and exactly one mouth */
 .fox .m-happy,
 .fox .m-wavy,
 .fox .m-flat,
+.fox .m-neutral,
 .fox .b-think,
 .fox .b-oops,
 .fox .blush,
 .fox .e-arc,
-.fox .e-x { opacity: 0; }
+.fox .e-x,
+.fox .track { opacity: 0; }
+
+.fox[data-mood='idle'] .track,
+.fox[data-mood='idle'] .m-neutral { opacity: 1; }
+
+.fox[data-mood='think'] .track,
+.fox[data-mood='think'] .m-flat,
+.fox[data-mood='think'] .b-think { opacity: 1; }
 
 .fox[data-mood='happy'] .m-happy,
 .fox[data-mood='happy'] .e-arc,
 .fox[data-mood='happy'] .blush { opacity: 1; }
-
-.fox[data-mood='think'] .m-flat,
-.fox[data-mood='think'] .b-think { opacity: 1; }
 
 .fox[data-mood='oops'] .m-wavy,
 .fox[data-mood='oops'] .e-x,

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-labelledby="kitsutitle kitsudesc" data-mood="idle">
+<svg class="fox" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-labelledby="kitsutitle kitsudesc" data-mood="idle">
   <title id="kitsutitle">Kitsu the fox</title>
   <desc id="kitsudesc">A burnt-orange fox with dark ear tips, a cream muzzle and ink freckles. The drawing changes with the data-mood attribute.</desc>
   <style>
@@ -8,14 +8,17 @@
     .fox .i { fill: var(--ink); }
     .fox .p { fill: var(--paper2); }
     .fox .s { stroke: var(--ink); stroke-width: 5; stroke-linecap: round; fill: none; }
-    .fox .m-happy, .fox .m-wavy, .fox .m-flat,
+    .fox .m-happy, .fox .m-wavy, .fox .m-flat, .fox .m-neutral,
     .fox .b-think, .fox .b-oops, .fox .blush,
-    .fox .e-arc, .fox .e-x { opacity: 0; }
+    .fox .e-arc, .fox .e-x, .fox .track { opacity: 0; }
+    .fox[data-mood="idle"] .track,
+    .fox[data-mood="idle"] .m-neutral,
+    .fox[data-mood="think"] .track,
+    .fox[data-mood="think"] .m-flat,
+    .fox[data-mood="think"] .b-think { opacity: 1; }
     .fox[data-mood="happy"] .m-happy,
     .fox[data-mood="happy"] .e-arc,
     .fox[data-mood="happy"] .blush { opacity: 1; }
-    .fox[data-mood="think"] .m-flat,
-    .fox[data-mood="think"] .b-think { opacity: 1; }
     .fox[data-mood="oops"] .m-wavy,
     .fox[data-mood="oops"] .e-x,
     .fox[data-mood="oops"] .b-oops { opacity: 1; }
@@ -25,8 +28,7 @@
     .fox .track { transform-box: fill-box; transform-origin: 50% 50%; }
   </style>
 
-  <g class="fox">
-    <g class="fox__tilt">
+  <g class="fox__tilt">
       <!-- ears -->
       <g class="ears">
         <path class="f" d="M34 72 L26 16 L86 46 Z"/>
@@ -108,7 +110,7 @@
 
       <!-- mouths -->
       <g class="mouths">
-        <path class="s" d="M92 134 Q100 140 108 134"/>
+        <path class="s m-neutral" d="M92 134 Q100 140 108 134"/>
         <g class="m-happy">
           <path class="i" d="M86 132 Q100 148 114 132 Q100 138 86 132 Z"/>
           <ellipse class="f" cx="100" cy="140" rx="6" ry="4"/>
@@ -117,5 +119,4 @@
         <path class="m-wavy s" d="M88 134 q6 -7 12 0 t12 0"/>
       </g>
     </g>
-  </g>
 </svg>
