@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: haha-lol-calculator
+    runtime: static
+    staticPublishPath: .
+    autoDeploy: true
