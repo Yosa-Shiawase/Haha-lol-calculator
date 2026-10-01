@@ -1,9 +1,7 @@
-/* ==========================================================================
-   calc.js — the controller.
+/* calc.js — the controller.
    Owns the display, the live preview, the tape, the steps drawer and the
    keyboard. It never computes anything itself: Engine does that, and every
-   value that reaches the screen has already been through Engine.format.
-   ========================================================================== */
+   value that reaches the screen has already been through Engine.format. */
 
 (function () {
   'use strict';
@@ -41,9 +39,7 @@
 
   var all = function (sel) { return [].slice.call(document.querySelectorAll(sel)); };
 
-  /* ------------------------------------------------------------------ *
-   * display
-   * ------------------------------------------------------------------ */
+  /* --- display --------------------------------------------------------- */
 
   function say(text, cls) {
     valueOut.textContent = text;
@@ -136,9 +132,7 @@
     Kitsu.one('dock', on ? 'think' : 'idle', on ? 1600 : 0);
   }
 
-  /* ------------------------------------------------------------------ *
-   * solving
-   * ------------------------------------------------------------------ */
+  /* --- solving --------------------------------------------------------- */
 
   function drawSteps(steps, code) {
     stepsList.textContent = '';
@@ -264,9 +258,7 @@
     }
   }
 
-  /* ------------------------------------------------------------------ *
-   * keys, switch, drawer, pad pages
-   * ------------------------------------------------------------------ */
+  /* --- keys, switch, drawer, pad pages --------------------------------- */
 
   function hit(btn) {
     btn.classList.remove('is-hit');
@@ -326,9 +318,7 @@
     });
   }
 
-  /* ------------------------------------------------------------------ *
-   * keyboard
-   * ------------------------------------------------------------------ */
+  /* --- keyboard -------------------------------------------------------- */
 
   var TYPED = {
     '+': '+', '-': '−', '*': '×', '/': '÷', '^': '^',
@@ -378,8 +368,8 @@
 
   setMode('deg');
 
-  /* a mouse or keyboard user gets the caret straight away; a phone would
-     only get an on-screen keyboard covering half the keypad */
+  /* a mouse user gets the caret straight away; a phone would only get an
+     on-screen keyboard covering half the keypad */
   if (window.matchMedia('(pointer: fine)').matches) {
     expr.focus({ preventScroll: true });
   }

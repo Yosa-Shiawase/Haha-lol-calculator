@@ -1,9 +1,7 @@
-/* ==========================================================================
-   engine.js — normalizeInput -> tokenize -> parse -> evaluate
+/* engine.js — normalizeInput -> tokenize -> parse -> evaluate.
    A plain recursive-descent parser that narrates itself. No dependencies,
    no globals beyond window.Engine, and it runs identically under file://,
-   a static host or node (for the test harness).
-   ========================================================================== */
+   a static host or node (for the test harness). */
 
 (function () {
   'use strict';
@@ -47,9 +45,7 @@
   /* an operator's glyph in a narration line: + stays a plus, the rest wear maths */
   function sym(op) { return GLYPH[op] || op; }
 
-  /* ------------------------------------------------------------------ *
-   * 1. normalizeInput
-   * ------------------------------------------------------------------ */
+  /* --- 1. normalizeInput ------------------------------------------------ */
 
   var FOLD = [
     [/[\u2013\u2014\u2212]/g, '-'],
@@ -68,9 +64,7 @@
     return s.replace(/\s+/g, ' ').trim().toLowerCase();
   }
 
-  /* ------------------------------------------------------------------ *
-   * 2. tokenize
-   * ------------------------------------------------------------------ */
+  /* --- 2. tokenize ------------------------------------------------------ */
 
   var NUM = /^(?:\d+\.?\d*|\.\d+)/;
   var WORD = /^[a-z]+/;
@@ -117,11 +111,8 @@
     return out;
   }
 
-  /* ------------------------------------------------------------------ *
-   * 3. parse — recursive descent
-   *
-   * loosest to tightest:  + -  <  * /  <  implicit \u00d7  <  unary -  <  ^  <  !  <  atom
-   * ------------------------------------------------------------------ */
+  /* --- 3. parse: recursive descent.
+   loosest to tightest: + -  <  * /  <  implicit x  <  unary -  <  ^  <  !  <  atom */
 
   function parse(tokens) {
     var p = 0;
@@ -226,9 +217,7 @@
     return ast;
   }
 
-  /* ------------------------------------------------------------------ *
-   * 4. evaluate — post-order, and every rung leaves a step behind
-   * ------------------------------------------------------------------ */
+  /* --- 4. evaluate: post-order, and every rung leaves a step behind ----- */
 
   function tidy(v) {
     if (!isFinite(v)) throw { code: 'domain' };
@@ -238,8 +227,7 @@
     return r === 0 ? 0 : r;
   }
 
-  /* display rounding is separate from internal precision: show twelve
-     significant digits, which is where a double stops being interesting */
+  /* display rounding is separate from internal precision */
   var SHOW = 12;
 
   function format(v) {
@@ -391,9 +379,7 @@
     return { value: value, text: format(value), steps: state.steps, mode: mode };
   }
 
-  /* ------------------------------------------------------------------ *
-   * public surface
-   * ------------------------------------------------------------------ */
+  /* --- public surface -------------------------------------------------- */
 
   function solve(input, opts) {
     var tokens = tokenize(input);

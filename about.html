@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — Kitsu</title>
+<meta name="description" content="How Kitsu's calculator works: the ladder of operations, the keyboard map, her four moods, every error line she says, and what the site is built from.">
+<meta name="theme-color" content="#F3ECDF">
+<link rel="canonical" href="https://haha-lol-calculator.onrender.com/about.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kitsu">
+<meta property="og:title" content="About — Kitsu">
+<meta property="og:description" content="The ladder, the keyboard map, Kitsu's four moods and every line she says when something goes wrong.">
+<meta property="og:url" content="https://haha-lol-calculator.onrender.com/about.html">
+<meta property="og:image" content="https://haha-lol-calculator.onrender.com/assets/img/og-kitsu.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="About — Kitsu">
+<meta name="twitter:description" content="The ladder, the keyboard map, Kitsu's four moods and every line she says when something goes wrong.">
+<meta name="twitter:image" content="https://haha-lol-calculator.onrender.com/assets/img/og-kitsu.png">
+<link rel="icon" href="assets/img/fox.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<script>document.documentElement.className += ' js';</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="mast">
+  <div class="wrap mast__in">
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+        <path fill="#E0511A" d="M34 72 L26 16 L86 46 Z"/>
+        <path fill="#E0511A" d="M166 72 L174 16 L114 46 Z"/>
+        <path fill="#191411" d="M26 16 L32 37 L51 29 Z"/>
+        <path fill="#191411" d="M174 16 L168 37 L149 29 Z"/>
+        <path fill="#E0511A" d="M100 40 C138 40 164 62 168 92 C172 122 156 148 129 159 C120 163 110 165 100 165 C90 165 80 163 71 159 C44 148 28 122 32 92 C36 62 62 40 100 40 Z"/>
+        <path fill="#FAF5EA" d="M100 96 C126 96 142 110 142 128 C142 146 123 157 100 157 C77 157 58 146 58 128 C58 110 74 96 100 96 Z"/>
+        <circle fill="#191411" cx="75" cy="90" r="7.4"/>
+        <circle fill="#191411" cx="125" cy="90" r="7.4"/>
+        <circle fill="#FAF5EA" cx="71.6" cy="86.6" r="2.7"/>
+        <circle fill="#FAF5EA" cx="121.6" cy="86.6" r="2.7"/>
+        <path fill="#191411" d="M92 110 Q100 105 108 110 Q107 121 100 124 Q93 121 92 110 Z"/>
+        <path fill="none" stroke="#191411" stroke-width="5" stroke-linecap="round" d="M92 134 Q100 140 108 134"/>
+      </svg>
+      <span>Kitsu<b>.</b></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="calc.html">Calculator</a>
+      <a href="about.html" aria-current="page">About</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page doc wrap wrap--tight">
+
+  <header class="doc__head">
+    <p class="eyebrow">About</p>
+    <h1>How Kitsu thinks, and what she&rsquo;s made of.</h1>
+    <p class="lede">A calculator is a small idea: one expression in, one number out.
+      The interesting part is never the number. It is being able to see
+      <em>why</em> that number came out, and to have somebody notice when you
+      are about to make a mistake. That is the whole job here.</p>
+  </header>
+
+  <hr class="rule">
+
+  <section class="doc__section" data-reveal>
+    <h2>The ladder</h2>
+    <p>Order of operations is not a pile, it is a ladder, and Kitsu climbs it from the
+      bottom rung up. Tightest binds first:</p>
+    <table class="ladder">
+      <caption class="vh">Operators from tightest binding to loosest</caption>
+      <thead>
+        <tr><th scope="col">Rung</th><th scope="col">Writes</th><th scope="col">Reads</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">factorial</th><td class="m">5!</td><td class="m">120</td></tr>
+        <tr><th scope="row">power</th><td class="m">2 ^ 3 ^ 2</td><td class="m">2 ^ (3 ^ 2) = 512</td></tr>
+        <tr><th scope="row">unary minus</th><td class="m">−2 ^ 2</td><td class="m">−4, because the sign sits below the power</td></tr>
+        <tr><th scope="row">implicit times</th><td class="m">2pi &nbsp; 3(4+1) &nbsp; 2sin(30)</td><td class="m">side-by-side means multiply</td></tr>
+        <tr><th scope="row">times and divide</th><td class="m">12 ÷ 3 × 2</td><td class="m">8, chained from the left</td></tr>
+        <tr><th scope="row">plus and minus</th><td class="m">2 + 3 − 4</td><td class="m">1, the loosest rung</td></tr>
+      </tbody>
+    </table>
+    <p>Because implicit multiplication binds tighter than division,
+      <span class="m">1/2pi</span> means <span class="m">1/(2&pi;)</span>. If you want the other
+      reading, write it: <span class="m">(1/2) * pi</span>.</p>
+  </section>
+
+  <section class="doc__section" data-reveal>
+    <h2>Keyboard</h2>
+    <p>Everything on the keypad works from the keyboard, from anywhere on the page.
+      No shortcuts to memorise, no modes.</p>
+    <table class="keys">
+      <caption class="vh">Keyboard map</caption>
+      <tbody>
+        <tr><th scope="row"><kbd>0</kbd>–<kbd>9</kbd> <kbd>.</kbd></th><td>digits and the decimal point</td></tr>
+        <tr><th scope="row"><kbd>+</kbd> <kbd>−</kbd> <kbd>*</kbd> <kbd>/</kbd></th><td>operators, shown back as <span class="m">+ − × ÷</span></td></tr>
+        <tr><th scope="row"><kbd>(</kbd> <kbd>)</kbd> <kbd>^</kbd> <kbd>!</kbd></th><td>brackets, power and factorial</td></tr>
+        <tr><th scope="row"><kbd>Enter</kbd> or <kbd>=</kbd></th><td>solve, and let Kitsu narrate it</td></tr>
+        <tr><th scope="row"><kbd>Esc</kbd></th><td>clear everything and start again</td></tr>
+        <tr><th scope="row"><kbd>Backspace</kbd></th><td>tidy one character</td></tr>
+        <tr><th scope="row">letters</th><td>type them straight in: <span class="m">pi</span>, <span class="m">e</span>, <span class="m">ans</span>, <span class="m">sqrt(9)</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="doc__section" data-reveal>
+    <h2>Kitsu&rsquo;s mood sheet</h2>
+    <p>Four moods, and she is never hiding which one she is in.</p>
+    <ul class="sheet">
+      <li class="sheet__row">
+        <div class="sheet__fox" data-kitsu="s-idle" data-static data-mood="idle" data-line="Blink twice if you need me."></div>
+        <div>
+          <h3>idle</h3>
+          <p>Waiting. She blinks somewhere between every 1.6 and 5 seconds, and her eyes
+            follow your pointer.</p>
+          <p class="sheet__line">&ldquo;Blink twice if you need me.&rdquo;</p>
+        </div>
+      </li>
+      <li class="sheet__row">
+        <div class="sheet__fox" data-kitsu="s-think" data-static data-mood="think" data-line="Order of operations is a ladder, not a pile. Climbing…"></div>
+        <div>
+          <h3>think</h3>
+          <p>You are mid-expression — there is a bracket open, or a trailing operator.
+            She is reading ahead.</p>
+          <p class="sheet__line">&ldquo;Order of operations is a ladder, not a pile. Climbing&hellip;&rdquo;</p>
+        </div>
+      </li>
+      <li class="sheet__row">
+        <div class="sheet__fox" data-kitsu="s-happy" data-static data-mood="happy" data-line="Solved — and I showed my work."></div>
+        <div>
+          <h3>happy</h3>
+          <p>It landed, and she wants you to check the steps. Also what happens when you
+            click her, for 1.7 seconds.</p>
+          <p class="sheet__line">&ldquo;Solved — and I showed my work.&rdquo;</p>
+        </div>
+      </li>
+      <li class="sheet__row">
+        <div class="sheet__fox" data-kitsu="s-oops" data-static data-mood="oops" data-line="A bracket went missing. I counted twice."></div>
+        <div>
+          <h3>oops</h3>
+          <p>Something could not be evaluated. She tilts five degrees and never, ever
+            says you did it wrong.</p>
+          <p class="sheet__line">&ldquo;A bracket went missing. I counted twice.&rdquo;</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="doc__section" data-reveal>
+    <h2>Every line she can say when it goes wrong</h2>
+    <p>There are exactly seven failure modes and exactly one line for each. None of them
+      blame you.</p>
+    <table class="keys">
+      <caption class="vh">Kitsu&rsquo;s error lines</caption>
+      <tbody>
+        <tr><th scope="row" class="m">unclosed</th><td>A bracket went missing. I counted twice.</td></tr>
+        <tr><th scope="row" class="m">div0</th><td>Division by zero. Even I can&rsquo;t outrun that one.</td></tr>
+        <tr><th scope="row" class="m">negsqrt</th><td>Square root of a negative? Not on the real number line, friend.</td></tr>
+        <tr><th scope="row" class="m">tan90</th><td>tan(90 degrees) runs off to infinity &mdash; undefined.</td></tr>
+        <tr><th scope="row" class="m">domain</th><td>That leaves the real number line, so I stopped there.</td></tr>
+        <tr><th scope="row" class="m">fact</th><td>I can only count whole numbers, and only up to 170 of them.</td></tr>
+        <tr><th scope="row" class="m">unknown</th><td>I don&rsquo;t know that one. Try sin, cos, tan, ln, log, sqrt, abs, pi, e or ans.</td></tr>
+      </tbody>
+    </table>
+    <p>There is no path that can produce <span class="m">NaN</span> on this site. If a value
+      comes out non-finite it is a <span class="m">domain</span> error, never a number you
+      have to be told to distrust.</p>
+  </section>
+
+  <section class="doc__section" data-reveal>
+    <h2>The background</h2>
+    <p>Every page shares one fixed canvas behind the content, and it is doing something.
+      It paints graph paper at 48&nbsp;px, with every fifth line a shade darker, and the
+      horizontal lines move with the page so it feels like paper you are working on.</p>
+    <p>Down the whole length of the page runs an ink curve. You ink it by scrolling: the
+      further you go, the further the ink goes, and Kitsu&rsquo;s orange nib is at the tip
+      of it with a trail that stretches when you scroll faster. A dashed pencil sketch runs
+      slightly ahead of the ink, and six enormous maths glyphs drift past in the margins at
+      their own pace.</p>
+    <p>If your system asks for reduced motion, all of that goes static: the canvas paints
+      once, fully inked, and nothing on any page animates afterwards.</p>
+  </section>
+
+  <section class="doc__section" data-reveal>
+    <h2>Changelog</h2>
+    <ol class="log">
+      <li>
+        <p class="log__head"><b>1.0</b> &middot; 1 October 2026</p>
+        <ul>
+          <li>The calculator: live preview, history tape, steps drawer, DEG/RAD switch,
+            five-column scientific keypad and the full keyboard map.</li>
+          <li>The engine: tokenizer, recursive-descent parser and a narrating evaluator,
+            with implicit multiplication, right-associative powers, factorials and seven
+            typed error codes.</li>
+          <li>Kitsu: four moods, blinking, pointer tracking, a hop when you click her, and
+            an opt-in voice with word-by-word highlighting in her bubble.</li>
+          <li>Speech input, where the browser supports it: &ldquo;two plus three times
+            four&rdquo; becomes <span class="m">2 + 3 * 4</span>.</li>
+          <li>The solving-paper background on all three pages, and a full static mode for
+            <span class="m">prefers-reduced-motion</span>.</li>
+        </ul>
+      </li>
+    </ol>
+    <h3>Deliberately not here</h3>
+    <p>No accounts, no sync, no history that outlives your tab, no analytics and no cookies.
+      The tape is memory for the length of one visit, and it goes when you close it.</p>
+  </section>
+
+  <section class="doc__section" data-reveal>
+    <h2>Credits</h2>
+    <ul class="credits">
+      <li>Type: <b>Fraunces</b> for display, <b>Space Grotesk</b> for everything you read,
+        <b>JetBrains Mono</b> for every number that matters. All three are
+        <span class="m">SIL Open Font License</span>, served from Google Fonts, which is the
+        only external request this site makes.</li>
+      <li>Code: hand-written HTML, CSS and JavaScript. No framework, no bundler, no build
+        step, no package manager, no external JavaScript.</li>
+      <li>The fox is six circles, four paths and one &ldquo;.&rdquo;. She is drawn in the
+        page, not imported.</li>
+      <li>Hosting: a static site on Render, published straight from the repository.</li>
+    </ul>
+    <p class="colophon">Under 60&nbsp;KB of JavaScript for the whole site, unminified, and
+      that is the point.</p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <p><a href="calc.html">Back to the calculator</a></p>
+    <p class="foot__seal">
+      <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+        <path fill="#E0511A" d="M34 72 L26 16 L86 46 Z"/>
+        <path fill="#E0511A" d="M166 72 L174 16 L114 46 Z"/>
+        <path fill="#191411" d="M100 40 C138 40 164 62 168 92 C172 122 156 148 129 159 C120 163 110 165 100 165 C90 165 80 163 71 159 C44 148 28 122 32 92 C36 62 62 40 100 40 Z"/>
+        <circle fill="#FAF5EA" cx="75" cy="90" r="6.5"/>
+        <circle fill="#FAF5EA" cx="125" cy="90" r="6.5"/>
+      </svg>
+      Kitsu
+    </p>
+  </div>
+</footer>
+
+<script src="assets/js/fox.js" defer></script>
+<script src="assets/js/background.js" defer></script>
+</body>
+</html>

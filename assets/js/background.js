@@ -1,10 +1,8 @@
-/* ==========================================================================
-   background.js — "solving paper".
+/* background.js — "solving paper".
    One fixed canvas behind every page: graph paper, an ink curve that is
    inked by scrolling, a pencil sketch that runs ahead of it, and six margin
    glyphs that drift with parallax. Dirty-flag rendering: we only paint on
-   scroll, resize or font load. No layout reads inside the frame.
-   ========================================================================== */
+   scroll, resize or font load. No layout reads inside the frame. */
 
 (function () {
   'use strict';
@@ -127,8 +125,8 @@
 
     ctx.lineWidth = LINE_W;
 
-    /* vertical lines never move; anchor them so one crosses the centre */
-    /* one pass per weight keeps both weights cheap and crisp */
+    /* vertical lines never move; anchor them so one crosses the centre.
+       one pass per weight keeps both weights cheap and crisp */
     var vAnchor = W / 2 - Math.round(W / 2 / CELL) * CELL;
 
     ctx.strokeStyle = 'rgba(' + color.ink + ',' + INK_A + ')';
@@ -339,10 +337,8 @@
 
   window.Paper = { invalidate: invalidate, repaint: onResize };
 
-  /* ======================================================================
-     page chrome — scroll reveals and the hero strike-through. Lives with
-     the background because both are "the page, not a widget".
-     ====================================================================== */
+  /* page chrome — scroll reveals and the hero strike-through. Lives with
+     the background because both are "the page, not a widget". */
 
   function chrome() {
     var items = document.querySelectorAll('[data-reveal]');

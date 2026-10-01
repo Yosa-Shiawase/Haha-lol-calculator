@@ -1,9 +1,7 @@
-/* ==========================================================================
-   fox.js — Kitsu.
+/* fox.js — Kitsu.
    One module, many instances. Builds the fox from parts, owns her four
    moods, her blink schedule, her eye tracking and her click-hop.
-   Every animation here is a CSS class toggle; nothing is animated in JS.
-   ========================================================================== */
+   Every animation here is a CSS class toggle; nothing is animated in JS. */
 
 (function () {
   'use strict';
@@ -60,7 +58,7 @@
   ].join('');
 
   /* the same palette the standalone asset uses, so an inline fox and an
-     <img> fox are pixel-identical */
+     <img> fox are identical */
   var STYLE = [
     '.fox{--fox:#E0511A;--ink:#191411;--paper2:#FAF5EA;--err:#B3261E}',
     '.fox *{vector-effect:non-scaling-stroke}',
@@ -93,6 +91,8 @@
     this.id = host.getAttribute('data-kitsu') || 'main';
     this.hold = 0;
     this.blinkTimer = 0;
+    /* a gallery fox holds one mood on purpose and never takes a click */
+    this.fixed = host.hasAttribute('data-static');
 
     injectStyle();
     host.classList.add('kitsu');
@@ -104,14 +104,21 @@
     this.pupils = host.querySelectorAll('.pupilgrp');
 
     var self = this;
-    this.svg.addEventListener('click', function () { self.hop(); });
-    this.scheduleBlink();
+
+    if (this.fixed) {
+      this.svg.setAttribute('data-mood', host.getAttribute('data-mood') || 'idle');
+      host.classList.add('kitsu--fixed');
+    } else {
+      this.svg.addEventListener('click', function () { self.hop(); });
+      this.scheduleBlink();
+    }
 
     var opening = host.getAttribute('data-line');
     if (opening) this.line(opening);
   }
 
   Kitsu.prototype.mood = function (mood, hold) {
+    if (this.fixed) return;
     mood = mood === 'think' || mood === 'happy' || mood === 'oops' ? mood : 'idle';
     this.svg.setAttribute('data-mood', mood);
     if (this.hold) { clearTimeout(this.hold); this.hold = 0; }
