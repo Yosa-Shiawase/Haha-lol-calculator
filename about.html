@@ -67,33 +67,29 @@
 
   <hr class="rule">
 
-  <section class="doc__section" data-reveal>
+  <section class="doc__section" data-reveal id="guide">
     <h2>Using the calculator</h2>
     <p>Type in the box, or press keys. The number under the box is a live
       preview &mdash; it updates as you type, before you press
       <kbd>Enter</kbd>. Press <kbd>Enter</kbd> (or the <span class="m">=</span>
-      key) and Kitsu writes down every rung she climbed.</p>
+      key) and Kitsu writes down every rung she climbed in the
+      <b>&sum; Steps</b> panel.</p>
 
-    <h3>The two keypad pages</h3>
-    <p>The orange <b>fn</b> button swaps between two pages of keys. The main
-      page carries everything you need day to day:</p>
-    <pre class="ladder">sin   cos   tan   &#960;   C
-ln    log   &#8730;     ^    &#9003;
-7     8     9     &#247;   (
-4     5     6     &#215;   )
-1     2     3     &#8722;   !
-0     .     =     +    ANS</pre>
-    <p>The second page holds the rest: <span class="m">sin&#8315;&#185;</span>
-      <span class="m">cos&#8315;&#185;</span> <span class="m">tan&#8315;&#185;</span>
-      <span class="m">abs</span> <span class="m">&#177;</span>
-      <span class="m">x&#178;</span> <span class="m">x&#7495;</span>
-      <span class="m">1/x</span> <span class="m">det</span>
-      <span class="m">n!</span> <span class="m">e</span>
-      <span class="m">mod</span> <span class="m">gcd</span>
-      <span class="m">lcm</span> <span class="m">ceil</span>
-      <span class="m">nCr</span> <span class="m">nPr</span>
-      <span class="m">hypot</span> <span class="m">round</span>
-      <span class="m">floor</span>.</p>
+    <h3>From the keyboard</h3>
+    <p>Everything on the keypad works from the keyboard, from anywhere on the
+      page. No shortcuts to memorise, no modes.</p>
+    <table class="keys">
+      <caption class="vh">Keyboard map</caption>
+      <tbody>
+        <tr><th scope="row"><kbd>0</kbd>&ndash;<kbd>9</kbd> <kbd>.</kbd></th><td>digits and the decimal point</td></tr>
+        <tr><th scope="row"><kbd>+</kbd> <kbd>&minus;</kbd> <kbd>*</kbd> <kbd>/</kbd></th><td>operators, shown back as <span class="m">+ &minus; &times; &divide;</span></td></tr>
+        <tr><th scope="row"><kbd>(</kbd> <kbd>)</kbd> <kbd>^</kbd> <kbd>!</kbd></th><td>brackets, power and factorial</td></tr>
+        <tr><th scope="row"><kbd>Enter</kbd> or <kbd>=</kbd></th><td>solve, and let Kitsu narrate it</td></tr>
+        <tr><th scope="row"><kbd>Esc</kbd></th><td>close the steps panel, then clear everything</td></tr>
+        <tr><th scope="row"><kbd>Backspace</kbd></th><td>tidy one character</td></tr>
+        <tr><th scope="row">letters</th><td>type them straight in: <span class="m">pi</span>, <span class="m">e</span>, <span class="m">ans</span>, <span class="m">sqrt(9)</span></td></tr>
+      </tbody>
+    </table>
 
     <h3>Every function, with a worked answer</h3>
     <table class="keys">
@@ -134,11 +130,24 @@ ln    log   &#8730;     ^    &#9003;
       </tbody>
     </table>
 
-    <h3>The tape and the steps</h3>
-    <p>Every solved expression lands on the tape above the keypad. Tap one to
-      put it back in the box. The <b>&sum; Steps</b> panel on the right is where
-      Kitsu writes her working; on a phone it slides up from the bottom, and
-      <kbd>Esc</kbd> or a tap on the dimmed page puts it away.</p>
+    <h3>The fn row</h3>
+    <p>The orange <b>fn</b> key swaps the keypad between two pages of keys. The
+      main page carries what you need day to day &mdash;
+      <span class="m">sin cos tan &pi;</span>,
+      <span class="m">ln log &radic;</span>, the digits, <span class="m">+ &minus;
+      &times; &divide;</span>, the brackets, <span class="m">!</span> and
+      <b>ANS</b>. The second page holds the rest:</p>
+    <table class="keys">
+      <caption class="vh">What the fn row holds</caption>
+      <tbody>
+        <tr><th scope="row"><span class="m">sin&#8315;&#185; cos&#8315;&#185; tan&#8315;&#185;</span></th><td>write their bracketed names, so <span class="m">asin(0.5)</span> needs no keyboard.</td></tr>
+        <tr><th scope="row"><span class="m">abs e mod gcd lcm</span></th><td>insert the name with the bracket already open.</td></tr>
+        <tr><th scope="row"><span class="m">det nCr nPr hypot</span></th><td>the same, for the arithmetic you would otherwise have to write out.</td></tr>
+        <tr><th scope="row"><span class="m">round floor ceil</span></th><td>tidy an answer up.</td></tr>
+        <tr><th scope="row"><span class="m">&plusmn; x&#178; n! 1/x</span></th><td>act on whatever is already in the box &mdash; flip its sign, square it, count it, or turn it into its reciprocal.</td></tr>
+        <tr><th scope="row"><span class="m">x&#7495;</span></th><td>the same <span class="m">^</span> as the main page.</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <section class="doc__section" data-reveal>
@@ -162,24 +171,6 @@ ln    log   &#8730;     ^    &#9003;
     <p>Because implicit multiplication binds tighter than division,
       <span class="m">1/2pi</span> means <span class="m">1/(2&pi;)</span>. If you want the other
       reading, write it: <span class="m">(1/2) * pi</span>.</p>
-  </section>
-
-  <section class="doc__section" data-reveal>
-    <h2>Keyboard</h2>
-    <p>Everything on the keypad works from the keyboard, from anywhere on the page.
-      No shortcuts to memorise, no modes.</p>
-    <table class="keys">
-      <caption class="vh">Keyboard map</caption>
-      <tbody>
-        <tr><th scope="row"><kbd>0</kbd>–<kbd>9</kbd> <kbd>.</kbd></th><td>digits and the decimal point</td></tr>
-        <tr><th scope="row"><kbd>+</kbd> <kbd>−</kbd> <kbd>*</kbd> <kbd>/</kbd></th><td>operators, shown back as <span class="m">+ − × ÷</span></td></tr>
-        <tr><th scope="row"><kbd>(</kbd> <kbd>)</kbd> <kbd>^</kbd> <kbd>!</kbd></th><td>brackets, power and factorial</td></tr>
-        <tr><th scope="row"><kbd>Enter</kbd> or <kbd>=</kbd></th><td>solve, and let Kitsu narrate it</td></tr>
-        <tr><th scope="row"><kbd>Esc</kbd></th><td>clear everything and start again</td></tr>
-        <tr><th scope="row"><kbd>Backspace</kbd></th><td>tidy one character</td></tr>
-        <tr><th scope="row">letters</th><td>type them straight in: <span class="m">pi</span>, <span class="m">e</span>, <span class="m">ans</span>, <span class="m">sqrt(9)</span></td></tr>
-      </tbody>
-    </table>
   </section>
 
   <section class="doc__section" data-reveal>
@@ -320,7 +311,7 @@ ln    log   &#8730;     ^    &#9003;
         page, not imported.</li>
       <li>Hosting: a static site on Render, published straight from the repository.</li>
     </ul>
-    <p class="colophon">Under 60&nbsp;KB of JavaScript for the whole site, unminified, and
+    <p class="colophon">Under 80&nbsp;KB of JavaScript for the whole site, unminified, and
       that is the point.</p>
   </section>
 

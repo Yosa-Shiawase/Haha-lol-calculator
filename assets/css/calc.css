@@ -364,6 +364,13 @@ main.calc ~ .foot {
 
 .drawer[data-has-steps='true'] .drawer__hint { display: none; }
 
+.drawer__help {
+  margin: 0;
+  padding: 14px 18px 20px;
+  border-top: var(--bw) solid var(--line);
+  font-size: .82rem;
+}
+
 .steps {
   margin: 0;
   padding: 0 18px 20px;
