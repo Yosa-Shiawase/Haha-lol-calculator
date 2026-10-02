@@ -1,6 +1,5 @@
-/* calc.js — the controller: display, live preview, tape, steps drawer,
-   keyboard. It computes nothing itself; every value on screen came from
-   Engine, through Engine.format. */
+/* calc.js — controller: display, live preview, tape, steps drawer, keyboard.
+   Computes nothing itself; every value on screen came from Engine.format. */
 
 (function () {
   'use strict';
@@ -39,15 +38,12 @@
 
   var all = function (sel) { return [].slice.call(document.querySelectorAll(sel)); };
 
-  /* --- display ----------------------- */
+  /* display */
 
   function say(text, cls) {
     valueOut.textContent = text;
     valueOut.className = 'display__value' + (cls ? ' ' + cls : '');
-  }
-
-  /* the caret is tracked here rather than read from the DOM, because a
-     click on a key button blurs the field and would otherwise lose it */
+  }/* the caret is tracked here, not read from the DOM: a key click blurs the field */
   var lastCaret = 0;
 
   function caret() { return lastCaret; }
@@ -132,7 +128,7 @@
     Kitsu.one('dock', on ? 'think' : 'idle', on ? 1600 : 0);
   }
 
-  /* --- solving --------------------------- */
+  /* solving */
 
   function drawSteps(steps, code) {
     stepsList.textContent = '';
@@ -257,7 +253,7 @@
     }
   }
 
-  /* --- keys, switch, drawer, pad pages ------------- */
+  /* keys, drawer, pad pages */
 
   function hit(btn) {
     btn.classList.remove('is-hit');
@@ -313,8 +309,7 @@
     });
   }
 
-  /* the backdrop closes the sheet, then hands the click to whatever was
-       underneath, so reading the steps never costs a second click */
+  /* the backdrop closes the sheet, then hands the click to whatever was under it */
   if (sheetBackdrop) {
     sheetBackdrop.addEventListener('click', function (ev) {
       var x = ev.clientX;
@@ -334,7 +329,7 @@
     });
   }
 
-  /* --- keyboard ----------------------- */
+  /* keyboard */
 
   var TYPED = {
     '+': '+', '-': '−', '*': '×', '/': '÷', '^': '^',
@@ -367,10 +362,7 @@
       return;
     }
 
-    if (inField) return;
-
-    /* anything a person might type simply lands in the expression, so
-       "ans", "sqrt(9)" and "log(100)" need no special keys at all */
+    if (inField) return;/* typed words land in the expression: ans, sqrt(9), log(100) need no keys */
     if (TYPED[k] || /^[0-9a-z.]$/i.test(k)) {
       ev.preventDefault();
       expr.focus();
@@ -391,10 +383,7 @@
     expr.focus();
   });
 
-  setMode('deg');
-
-  /* a mouse user gets the caret straight away; a phone would only get an
-     on-screen keyboard covering half the keypad */
+  setMode('deg');/* a mouse user gets the caret straight away */
   if (window.matchMedia('(pointer: fine)').matches) {
     expr.focus({ preventScroll: true });
   }

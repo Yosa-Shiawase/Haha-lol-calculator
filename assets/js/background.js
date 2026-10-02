@@ -1,6 +1,5 @@
-/* background.js — "solving paper". One fixed canvas: graph paper, an ink
-   curve inked by scrolling, a pencil sketch ahead of it, drifting margin
-   glyphs. Paints only on scroll/resize/font-load. */
+/* background.js — "solving paper": graph paper, an ink curve inked by scrolling,
+   a pencil sketch ahead of it, drifting margin glyphs. */
 
 (function () {
   'use strict';
@@ -107,7 +106,7 @@
         factor: g.factor,
         x: g.side < 0 ? W * 0.075 : W * 0.925,
         align: g.side < 0 ? 'left' : 'right',
-        /* the literal parallax rule: screenY = pageY - scrollY * factor */
+        /* the parallax rule: screenY = pageY - scrollY * factor */
         pageY: staticMode ? H * (GLYPHS.indexOf(g) + 0.5) / GLYPHS.length
                           : H / 2 + at * g.factor
       };
@@ -123,8 +122,7 @@
 
     ctx.lineWidth = LINE_W;
 
-    /* vertical lines never move; anchor them so one crosses the centre.
-       one pass per weight keeps both weights cheap and crisp */
+    /* vertical lines never move; anchor them so one crosses the centre */
     var vAnchor = W / 2 - Math.round(W / 2 / CELL) * CELL;
 
     ctx.strokeStyle = 'rgba(' + color.ink + ',' + INK_A + ')';
@@ -335,8 +333,7 @@
 
   window.Paper = { invalidate: invalidate, repaint: onResize };
 
-  /* page chrome — scroll reveals and the hero strike-through. Lives with
-     the background because both are "the page, not a widget". */
+  /* page chrome — scroll reveals and the hero strike-through; one shared listener */
 
   function chrome() {
     var items = document.querySelectorAll('[data-reveal]');

@@ -1,6 +1,5 @@
-/* fox.js — Kitsu. One module, many instances: her four moods, blink
-   schedule, eye tracking and click-hop. Every animation is a CSS class
-   toggle; nothing is animated in JS. */
+/* fox.js — Kitsu. One module, many instances: four moods, blink, eye tracking,
+   click-hop. Every animation is a CSS class toggle, none in JS. */
 
 (function () {
   'use strict';
@@ -54,10 +53,7 @@
     '</g>',
     '</g>',
     '</svg>'
-  ].join('');
-
-  /* the same palette the standalone asset uses, so an inline fox and an
-     <img> fox are identical */
+  ].join('');/* the standalone asset's palette, so an inline fox and an <img> fox match */
   var STYLE = [
     '.fox{--fox:#E0511A;--ink:#191411;--paper2:#FAF5EA;--err:#B3261E}',
     '.fox *{vector-effect:non-scaling-stroke}',
