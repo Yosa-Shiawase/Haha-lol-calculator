@@ -1,6 +1,5 @@
-/* voice.js — Kitsu's mouth. Strictly opt-in.
-   Nothing here runs until the speaker is switched on, and every capability
-   check degrades silently: no speech on the page, no errors. */
+/* voice.js — Kitsu's mouth. Strictly opt-in: nothing runs until the speaker
+   is switched on, and every capability check degrades silently. */
 
 (function () {
   'use strict';

@@ -1,7 +1,6 @@
-/* story.js — the landing page.
-   Three small things: a mini-pad that really calculates, the sticky card
-   that walks 2 + 3 x 4 from tokens to answer as you scroll, and the orange
-   page wipe. Everything it displays comes out of Engine, nothing is faked. */
+/* story.js — the landing page: a mini-pad that really calculates, the
+   sticky card that walks 2 + 3 x 4 as you scroll, and the orange wipe.
+   Everything it shows comes out of Engine; nothing is faked. */
 
 (function () {
   'use strict';
@@ -138,13 +137,40 @@
   function pageWipe() {
     var layer = document.querySelector('[data-wipe-layer]');
     if (!layer) return;
+    var go = 0;
+    var giveUp = 0;
+
+    /* the overlay covers the viewport, so it must always be escapable: the
+       button, Esc or a backdrop click — and the watchdog takes it down even
+       if the navigation never happens. */
+    function clear() {
+      window.clearTimeout(go);
+      window.clearTimeout(giveUp);
+      layer.classList.remove('is-wiping');
+      layer.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKey, true);
+    }
+
+    function onKey(ev) {
+      if (ev.key !== 'Escape') return;
+      ev.preventDefault();
+      clear();
+    }
+
+    function onClick(ev) {
+      if (ev.target.closest('[data-wipe-cancel]')) return;
+      clear();
+    }
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-wipe]'), function (a) {
       a.addEventListener('click', function (ev) {
-        if (RM.matches) return;
+        if (RM.matches || go) return;
         ev.preventDefault();
         layer.classList.add('is-wiping');
-        window.setTimeout(function () { window.location.href = a.getAttribute('href'); }, 700);
+        layer.addEventListener('click', onClick);
+        document.addEventListener('keydown', onKey, true);
+        giveUp = window.setTimeout(clear, 2500);
+        go = window.setTimeout(function () { window.location.href = a.getAttribute('href'); }, 700);
       });
     });
   }

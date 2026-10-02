@@ -914,11 +914,36 @@ section { position: relative; }
   font-size: clamp(3rem, 13vw, 7rem);
   color: var(--ink);
   opacity: 0;
-}
+}.wipe.is-wiping {
+    animation: page-wipe var(--t-wipe) var(--ease) forwards;
+    pointer-events: auto;
+  }
 
-.wipe.is-wiping { animation: page-wipe var(--t-wipe) var(--ease) forwards; }
+  .wipe.is-wiping .wipe__mark { animation: wipe-mark var(--t-wipe) var(--ease) forwards; }
 
-.wipe.is-wiping .wipe__mark { animation: wipe-mark var(--t-wipe) var(--ease) forwards; }
+  /* the wipe covers the whole viewport, so it always carries a real close
+     button: >=44px, inside the overlay, above its content, Esc also works */
+  .wipe__cancel {
+    position: absolute;
+    left: 50%;
+    bottom: 7vh;
+    z-index: 1;
+    transform: translateX(-50%);
+    visibility: hidden;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px 24px;
+    border: var(--bw) solid var(--ink);
+    border-radius: var(--r-pill);
+    background: var(--paper2);
+    color: var(--ink);
+    font-family: var(--ui);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .wipe.is-wiping .wipe__cancel { visibility: visible; }
 
 @keyframes page-wipe {
   0% { transform: translateY(100%); }

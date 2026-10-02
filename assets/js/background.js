@@ -1,8 +1,6 @@
-/* background.js — "solving paper".
-   One fixed canvas behind every page: graph paper, an ink curve that is
-   inked by scrolling, a pencil sketch that runs ahead of it, and six margin
-   glyphs that drift with parallax. Dirty-flag rendering: we only paint on
-   scroll, resize or font load. No layout reads inside the frame. */
+/* background.js — "solving paper". One fixed canvas: graph paper, an ink
+   curve inked by scrolling, a pencil sketch ahead of it, drifting margin
+   glyphs. Paints only on scroll/resize/font-load. */
 
 (function () {
   'use strict';
