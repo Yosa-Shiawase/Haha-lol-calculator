@@ -1,7 +1,6 @@
-/* fox.js — Kitsu.
-   One module, many instances. Builds the fox from parts, owns her four
-   moods, her blink schedule, her eye tracking and her click-hop.
-   Every animation here is a CSS class toggle; nothing is animated in JS. */
+/* fox.js — Kitsu. One module, many instances: her four moods, blink
+   schedule, eye tracking and click-hop. Every animation is a CSS class
+   toggle; nothing is animated in JS. */
 
 (function () {
   'use strict';

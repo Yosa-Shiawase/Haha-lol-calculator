@@ -1,7 +1,6 @@
-/* calc.js — the controller.
-   Owns the display, the live preview, the tape, the steps drawer and the
-   keyboard. It never computes anything itself: Engine does that, and every
-   value that reaches the screen has already been through Engine.format. */
+/* calc.js — the controller: display, live preview, tape, steps drawer,
+   keyboard. It computes nothing itself; every value on screen came from
+   Engine, through Engine.format. */
 
 (function () {
   'use strict';
@@ -17,6 +16,7 @@
   var stepsList = document.getElementById('steps');
   var drawer = document.getElementById('drawer');
   var drawerTab = document.querySelector('[data-drawer]');
+  var sheetBackdrop = document.querySelector('[data-sheet-backdrop]');
   var countBadge = document.querySelector('[data-step-count]');
   var hint = document.querySelector('[data-steps-hint]');
   var padRoot = document.getElementById('calc');
@@ -39,7 +39,7 @@
 
   var all = function (sel) { return [].slice.call(document.querySelectorAll(sel)); };
 
-  /* --- display --------------------------------------------------------- */
+  /* --- display ----------------------- */
 
   function say(text, cls) {
     valueOut.textContent = text;
@@ -132,7 +132,7 @@
     Kitsu.one('dock', on ? 'think' : 'idle', on ? 1600 : 0);
   }
 
-  /* --- solving --------------------------------------------------------- */
+  /* --- solving --------------------------- */
 
   function drawSteps(steps, code) {
     stepsList.textContent = '';
@@ -253,12 +253,11 @@
     Kitsu.sayTo('dock', 'Solved — and I showed my work.', 'happy');
 
     if (window.innerWidth > 720 && drawer.getAttribute('data-open') !== 'true') {
-      drawer.setAttribute('data-open', 'true');
-      drawerTab.setAttribute('aria-expanded', 'true');
+      setDrawer(true);
     }
   }
 
-  /* --- keys, switch, drawer, pad pages --------------------------------- */
+  /* --- keys, switch, drawer, pad pages ------------- */
 
   function hit(btn) {
     btn.classList.remove('is-hit');
@@ -301,11 +300,28 @@
     btn.addEventListener('click', function () { setMode(btn.getAttribute('data-mode')); });
   });
 
+  /* one place decides if the sheet is open, so tab, backdrop and Esc agree */
+  function setDrawer(open) {
+    drawer.setAttribute('data-open', open ? 'true' : 'false');
+    if (drawerTab) drawerTab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    padRoot.setAttribute('data-sheet', open ? 'true' : 'false');
+  }
+
   if (drawerTab) {
     drawerTab.addEventListener('click', function () {
-      var open = drawer.getAttribute('data-open') !== 'true';
-      drawer.setAttribute('data-open', open ? 'true' : 'false');
-      drawerTab.setAttribute('aria-expanded', open ? 'true' : 'false');
+      setDrawer(drawer.getAttribute('data-open') !== 'true');
+    });
+  }
+
+  /* the backdrop closes the sheet, then hands the click to whatever was
+       underneath, so reading the steps never costs a second click */
+  if (sheetBackdrop) {
+    sheetBackdrop.addEventListener('click', function (ev) {
+      var x = ev.clientX;
+      var y = ev.clientY;
+      setDrawer(false);
+      var under = document.elementFromPoint(x, y);
+      if (under && under !== sheetBackdrop && under.click) under.click();
     });
   }
 
@@ -318,7 +334,7 @@
     });
   }
 
-  /* --- keyboard -------------------------------------------------------- */
+  /* --- keyboard ----------------------- */
 
   var TYPED = {
     '+': '+', '-': '−', '*': '×', '/': '÷', '^': '^',
@@ -332,7 +348,16 @@
     var inField = ev.target === expr;
 
     if (k === 'Enter' || k === '=') { ev.preventDefault(); solve(); return; }
-    if (k === 'Escape') { ev.preventDefault(); clearAll(); return; }
+    if (k === 'Escape') {
+      ev.preventDefault();
+      /* the topmost overlay answers to Esc before the calculator does */
+      if (drawer.getAttribute('data-open') === 'true') { setDrawer(false); return; }
+      clearAll();
+      return;
+    }
+
+    /* starting to work dismisses the sheet, so it never sits over the keys */
+    if (drawer.getAttribute('data-open') === 'true') setDrawer(false);
 
     if (k === 'Backspace') {
       if (inField) { preview(); return; }
