@@ -1,6 +1,5 @@
-/* story.js — the landing page: a mini-pad that really calculates, the
-   sticky card that walks 2 + 3 x 4 as you scroll, and the orange wipe.
-   Everything it shows comes out of Engine; nothing is faked. */
+/* story.js — landing page: a mini-pad that really calculates, the sticky card that
+   walks 2 + 3 x 4 as you scroll, and the orange wipe. All from Engine. */
 
 (function () {
   'use strict';
@@ -19,7 +18,7 @@
     return n;
   }
 
-  /* 1. the mini-pad: three keys, the real engine */
+  /* the mini-pad */
 
   function miniPad() {
     var keys = document.querySelectorAll('[data-go]');
@@ -54,7 +53,7 @@
     });
   }
 
-  /* 2. the scroll beat: tokens, tree, steps, answer */
+  /* the scroll beat */
 
   function tokenChip(t) {
     var label = t.t === 'num' ? t.s : t.t === 'op' ? OPGLYPH[t.v] : t.v;
@@ -132,7 +131,7 @@
     measure();
   }
 
-  /* 3. the wipe: cover in one phase, hold in the other */
+  /* the wipe */
 
   function pageWipe() {
     var layer = document.querySelector('[data-wipe-layer]');
@@ -140,9 +139,8 @@
     var go = 0;
     var giveUp = 0;
 
-    /* the overlay covers the viewport, so it must always be escapable: the
-       button, Esc or a backdrop click — and the watchdog takes it down even
-       if the navigation never happens. */
+    /* the overlay covers the viewport, so it is always escapable: button, Esc or
+       backdrop click, plus a watchdog if the navigation never happens */
     function clear() {
       window.clearTimeout(go);
       window.clearTimeout(giveUp);

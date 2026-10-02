@@ -67,6 +67,89 @@
 
   <hr class="rule">
 
+  <section class="doc__section" data-reveal id="guide">
+    <h2>Using the calculator</h2>
+    <p>Type in the box, or press keys. The number under the box is a live
+      preview &mdash; it updates as you type, before you press
+      <kbd>Enter</kbd>. Press <kbd>Enter</kbd> (or the <span class="m">=</span>
+      key) and Kitsu writes down every rung she climbed in the
+      <b>&sum; Steps</b> panel.</p>
+
+    <h3>From the keyboard</h3>
+    <p>Everything on the keypad works from the keyboard, from anywhere on the
+      page. No shortcuts to memorise, no modes.</p>
+    <table class="keys">
+      <caption class="vh">Keyboard map</caption>
+      <tbody>
+        <tr><th scope="row"><kbd>0</kbd>&ndash;<kbd>9</kbd> <kbd>.</kbd></th><td>digits and the decimal point</td></tr>
+        <tr><th scope="row"><kbd>+</kbd> <kbd>&minus;</kbd> <kbd>*</kbd> <kbd>/</kbd></th><td>operators, shown back as <span class="m">+ &minus; &times; &divide;</span></td></tr>
+        <tr><th scope="row"><kbd>(</kbd> <kbd>)</kbd> <kbd>^</kbd> <kbd>!</kbd></th><td>brackets, power and factorial</td></tr>
+        <tr><th scope="row"><kbd>Enter</kbd> or <kbd>=</kbd></th><td>solve, and let Kitsu narrate it</td></tr>
+        <tr><th scope="row"><kbd>Esc</kbd></th><td>close the steps panel, then clear everything</td></tr>
+        <tr><th scope="row"><kbd>Backspace</kbd></th><td>tidy one character</td></tr>
+        <tr><th scope="row">letters</th><td>type them straight in: <span class="m">pi</span>, <span class="m">e</span>, <span class="m">ans</span>, <span class="m">sqrt(9)</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Every function, with a worked answer</h3>
+    <table class="keys">
+      <caption class="vh">Functions and worked examples</caption>
+      <tbody>
+        <tr><th scope="row"><span class="m">sin(30)</span></th><td><span class="m">0.5</span> &mdash; in DEG, thirty degrees is a half. Switch to RAD and the same key gives <span class="m">-0.988031624</span>.</td></tr>
+        <tr><th scope="row"><span class="m">cos(60)</span></th><td><span class="m">0.5</span></td></tr>
+        <tr><th scope="row"><span class="m">tan(45)</span></th><td><span class="m">1</span></td></tr>
+        <tr><th scope="row"><span class="m">asin(1)</span></th><td><span class="m">90</span> in DEG, <span class="m">1.570796327</span> in RAD. The inverse functions answer in whichever unit you are in.</td></tr>
+        <tr><th scope="row"><span class="m">acos(1)</span> <span class="m">atan(1)</span></th><td><span class="m">0</span> and <span class="m">45</span></td></tr>
+        <tr><th scope="row"><span class="m">ln(e)</span> <span class="m">log(100)</span></th><td><span class="m">1</span> and <span class="m">2</span>. <span class="m">log</span> is base ten, <span class="m">ln</span> is natural.</td></tr>
+        <tr><th scope="row"><span class="m">sqrt(16)</span></th><td><span class="m">4</span></td></tr>
+        <tr><th scope="row"><span class="m">abs(-7)</span></th><td><span class="m">7</span></td></tr>
+        <tr><th scope="row"><span class="m">sign(-9)</span></th><td><span class="m">-1</span> &mdash; and <span class="m">sign(0)</span> is <span class="m">0</span>.</td></tr>
+        <tr><th scope="row"><span class="m">round(2.567, 1)</span></th><td><span class="m">2.6</span>. Give one argument and it rounds to a whole number; give two and the second is how many decimals to keep.</td></tr>
+        <tr><th scope="row"><span class="m">floor(2.9)</span> <span class="m">ceil(2.1)</span></th><td><span class="m">2</span> and <span class="m">3</span></td></tr>
+        <tr><th scope="row"><span class="m">hypot(3, 4)</span></th><td><span class="m">5</span> &mdash; the hypotenuse, without typing the square root yourself.</td></tr>
+        <tr><th scope="row"><span class="m">mod(17, 5)</span></th><td><span class="m">2</span>, the remainder. <span class="m">mod(17, -5)</span> is <span class="m">-3</span>: the answer always carries the sign of the divisor.</td></tr>
+        <tr><th scope="row"><span class="m">gcd(12, 18)</span></th><td><span class="m">6</span> &mdash; greatest common divisor.</td></tr>
+        <tr><th scope="row"><span class="m">lcm(4, 6)</span></th><td><span class="m">12</span> &mdash; lowest common multiple.</td></tr>
+        <tr><th scope="row"><span class="m">nCr(10, 3)</span></th><td><span class="m">120</span> &mdash; ten things, three at a time, order ignored.</td></tr>
+        <tr><th scope="row"><span class="m">nPr(10, 3)</span></th><td><span class="m">720</span> &mdash; the same three, but order matters.</td></tr>
+        <tr><th scope="row"><span class="m">det(1, 2, 3, 4)</span></th><td><span class="m">-2</span>. Four numbers are a 2&times;2 matrix: <span class="m">ad &minus; bc</span>.</td></tr>
+        <tr><th scope="row"><span class="m">det(1,2,3,4,5,6,7,8,10)</span></th><td><span class="m">-3</span>. Nine numbers are a 3&times;3 matrix, read across the rows. Any other count is a domain error rather than a guess.</td></tr>
+        <tr><th scope="row"><span class="m">n!</span></th><td><span class="m">5!</span> is <span class="m">120</span>, and Kitsu spells the product out: <span class="m">5! = 5 &times; 4 &times; 3 &times; 2 &times; 1 = 120</span>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Constants, and a few things worth knowing</h3>
+    <table class="keys">
+      <caption class="vh">Constants and behaviours</caption>
+      <tbody>
+        <tr><th scope="row"><span class="m">pi</span> <span class="m">e</span></th><td>Type the name, or press the key. You may write the glyphs <span class="m">&pi;</span> and <span class="m">&radic;</span> too, and the calculator reads them.</td></tr>
+        <tr><th scope="row"><span class="m">ans</span></th><td>The last answer, still there on the next line. Solve <span class="m">512</span>, then type <span class="m">ans + 1</span> and get <span class="m">513</span>.</td></tr>
+        <tr><th scope="row">implicit times</th><td>Two things side by side multiply: <span class="m">2&pi;</span>, <span class="m">3(4+1)</span>, <span class="m">2sin(30)</span>. The <b>ANS</b> key inserts <span class="m">ans</span> for you.</td></tr>
+        <tr><th scope="row">glyphs</th><td>You can type <span class="m">+ &minus; &times; &divide; ^ ( ) !</span> and the calculator normalises them, so a symbol copied from a maths book works as-is.</td></tr>
+        <tr><th scope="row">degrees</th><td>A <span class="m">&deg;</span> after a number is ignored, so <span class="m">sin(30&deg;)</span> and <span class="m">sin(30)</span> agree.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>The fn row</h3>
+    <p>The orange <b>fn</b> key swaps the keypad between two pages of keys. The
+      main page carries what you need day to day &mdash;
+      <span class="m">sin cos tan &pi;</span>,
+      <span class="m">ln log &radic;</span>, the digits, <span class="m">+ &minus;
+      &times; &divide;</span>, the brackets, <span class="m">!</span> and
+      <b>ANS</b>. The second page holds the rest:</p>
+    <table class="keys">
+      <caption class="vh">What the fn row holds</caption>
+      <tbody>
+        <tr><th scope="row"><span class="m">sin&#8315;&#185; cos&#8315;&#185; tan&#8315;&#185;</span></th><td>write their bracketed names, so <span class="m">asin(0.5)</span> needs no keyboard.</td></tr>
+        <tr><th scope="row"><span class="m">abs e mod gcd lcm</span></th><td>insert the name with the bracket already open.</td></tr>
+        <tr><th scope="row"><span class="m">det nCr nPr hypot</span></th><td>the same, for the arithmetic you would otherwise have to write out.</td></tr>
+        <tr><th scope="row"><span class="m">round floor ceil</span></th><td>tidy an answer up.</td></tr>
+        <tr><th scope="row"><span class="m">&plusmn; x&#178; n! 1/x</span></th><td>act on whatever is already in the box &mdash; flip its sign, square it, count it, or turn it into its reciprocal.</td></tr>
+        <tr><th scope="row"><span class="m">x&#7495;</span></th><td>the same <span class="m">^</span> as the main page.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
   <section class="doc__section" data-reveal>
     <h2>The ladder</h2>
     <p>Order of operations is not a pile, it is a ladder, and Kitsu climbs it from the
@@ -88,24 +171,6 @@
     <p>Because implicit multiplication binds tighter than division,
       <span class="m">1/2pi</span> means <span class="m">1/(2&pi;)</span>. If you want the other
       reading, write it: <span class="m">(1/2) * pi</span>.</p>
-  </section>
-
-  <section class="doc__section" data-reveal>
-    <h2>Keyboard</h2>
-    <p>Everything on the keypad works from the keyboard, from anywhere on the page.
-      No shortcuts to memorise, no modes.</p>
-    <table class="keys">
-      <caption class="vh">Keyboard map</caption>
-      <tbody>
-        <tr><th scope="row"><kbd>0</kbd>–<kbd>9</kbd> <kbd>.</kbd></th><td>digits and the decimal point</td></tr>
-        <tr><th scope="row"><kbd>+</kbd> <kbd>−</kbd> <kbd>*</kbd> <kbd>/</kbd></th><td>operators, shown back as <span class="m">+ − × ÷</span></td></tr>
-        <tr><th scope="row"><kbd>(</kbd> <kbd>)</kbd> <kbd>^</kbd> <kbd>!</kbd></th><td>brackets, power and factorial</td></tr>
-        <tr><th scope="row"><kbd>Enter</kbd> or <kbd>=</kbd></th><td>solve, and let Kitsu narrate it</td></tr>
-        <tr><th scope="row"><kbd>Esc</kbd></th><td>clear everything and start again</td></tr>
-        <tr><th scope="row"><kbd>Backspace</kbd></th><td>tidy one character</td></tr>
-        <tr><th scope="row">letters</th><td>type them straight in: <span class="m">pi</span>, <span class="m">e</span>, <span class="m">ans</span>, <span class="m">sqrt(9)</span></td></tr>
-      </tbody>
-    </table>
   </section>
 
   <section class="doc__section" data-reveal>
@@ -190,6 +255,28 @@
     <h2>Changelog</h2>
     <ol class="log">
       <li>
+        <p class="log__head"><b>1.1</b> &middot; 2 October 2026</p>
+        <ul>
+          <li>The keypad rebuilt to five columns and six rows, so every day-to-day
+            function &mdash; <span class="m">sin cos tan &pi; ln log &radic; ^</span>
+            &mdash; sits on the main page and the second page holds the rest.</li>
+          <li>New functions: <span class="m">det</span> for 2&times;2 and 3&times;3
+            determinants, plus <span class="m">mod</span>, <span class="m">gcd</span>,
+            <span class="m">lcm</span>, <span class="m">nCr</span>, <span class="m">nPr</span>,
+            <span class="m">hypot</span>, <span class="m">round</span>,
+            <span class="m">floor</span>, <span class="m">ceil</span> and
+            <span class="m">sign</span>. Functions may now take a comma-separated
+            list of arguments.</li>
+          <li>Arguments count is checked, so a wrong number of them is a plain
+            domain error instead of a wrong answer.</li>
+          <li>A step now shows the value an operand climbed to, so
+            <span class="m">2 + 3 &times; 4</span> reads
+            <span class="m">2 + 12 = 14</span>, and a factorial spells out its product.</li>
+          <li>The page wipe can always be escaped, and the steps sheet can be
+            reached and dismissed on a phone.</li>
+        </ul>
+      </li>
+      <li>
         <p class="log__head"><b>1.0</b> &middot; 1 October 2026</p>
         <ul>
           <li>The calculator: live preview, history tape, steps drawer, DEG/RAD switch,
@@ -224,7 +311,7 @@
         page, not imported.</li>
       <li>Hosting: a static site on Render, published straight from the repository.</li>
     </ul>
-    <p class="colophon">Under 60&nbsp;KB of JavaScript for the whole site, unminified, and
+    <p class="colophon">Under 80&nbsp;KB of JavaScript for the whole site, unminified, and
       that is the point.</p>
   </section>
 
