@@ -65,7 +65,9 @@
 
   /* tokenize */
 
-  var NUM = /^(?:\d+\.?\d*|\.\d+)/;
+  /* a number may carry an exponent: 1e-15 is one literal, not 1 × e − 15.
+     The exponent has to carry its own digits, so 2e still means 2 × e. */
+  var NUM = /^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/;
   var WORD = /^[a-zA-Z]+/;
   /* typed either way, but always shown in the house style */
   var CANON = { ncr: 'nCr', npr: 'nPr' };
@@ -223,7 +225,8 @@
 
   function tidy(v) {
     if (!isFinite(v)) throw { code: 'domain' };
-    if (Math.abs(v) < SNAP) return 0;
+    /* no snapping here: a literal that is genuinely tiny is a real answer,
+       and quiet() is applied only where float noise actually arises */
     /* 15 significant digits is where a double stops lying about itself */
     var r = Number(v.toPrecision(15));
     return r === 0 ? 0 : r;
@@ -272,13 +275,17 @@
   }
 
   function degToRad(v) { return v * Math.PI / 180; }
+  /* sin(180) in DEG is -1.22e-16 of float noise, not a number. Only the
+     transcendental functions make that kind of noise, so only they are quieted. */
+  function quiet(v) { return Math.abs(v) < SNAP ? 0 : v; }
+
   function radToDeg(v) { return v * 180 / Math.PI; }function applyFn(name, xs, mode) {
       var x = xs[0];
       switch (name) {
         case 'abs': return Math.abs(x);
         case 'sqrt': if (x < 0) throw { code: 'negsqrt' }; return Math.sqrt(x);
-        case 'ln': if (x <= 0) throw { code: 'domain' }; return Math.log(x);
-        case 'log': if (x <= 0) throw { code: 'domain' }; return Math.log10(x);
+        case 'ln': if (x <= 0) throw { code: 'domain' }; return quiet(Math.log(x));
+        case 'log': if (x <= 0) throw { code: 'domain' }; return quiet(Math.log10(x));
         case 'round': {
           if (xs.length === 1) return Math.round(x);
           var places = xs[1];
@@ -313,22 +320,22 @@
               f = xs[5], g = xs[6], h = xs[7], i2 = xs[8];
           return a * (e * i2 - f * h) - b * (d * i2 - f * g) + c * (d * h - e * g);
         }
-      case 'sin': return Math.sin(mode === 'deg' ? degToRad(x) : x);
-      case 'cos': return Math.cos(mode === 'deg' ? degToRad(x) : x);
+      case 'sin': return quiet(Math.sin(mode === 'deg' ? degToRad(x) : x));
+      case 'cos': return quiet(Math.cos(mode === 'deg' ? degToRad(x) : x));
       case 'tan': {
         var fold = mode === 'deg' ? ((x % 180) + 180) % 180 : ((x % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         var half = mode === 'deg' ? 90 : Math.PI / 2;
         if (Math.abs(fold - half) < 1e-9 || Math.abs(fold - half * 3) < 1e-9) throw { code: 'tan90' };
-        return Math.tan(mode === 'deg' ? degToRad(x) : x);
+        return quiet(Math.tan(mode === 'deg' ? degToRad(x) : x));
       }
       case 'asin': case 'acos': {
         if (x < -1 || x > 1) throw { code: 'domain' };
         var r = name === 'asin' ? Math.asin(x) : Math.acos(x);
-        return mode === 'deg' ? radToDeg(r) : r;
+        return quiet(mode === 'deg' ? radToDeg(r) : r);
       }
       case 'atan': {
         var a = Math.atan(x);
-        return mode === 'deg' ? radToDeg(a) : a;
+        return quiet(mode === 'deg' ? radToDeg(a) : a);
       }
       default: throw { code: 'unknown' };
     }
