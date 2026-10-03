@@ -22,6 +22,44 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="assets/css/tokens.css">
+<style>
+/* These rules used to sit in a @media (max-width: 860px) block in tokens.css,
+   which every page links. They style components that exist only on this page, so
+   they live here now: tokens.css stays the shared token + furniture layer, and
+   nothing about the landing page leaks into calc.html or about.html.
+   Moved verbatim — same selectors, same values, nothing rewritten. */
+
+/* ==========================================================================
+   landing — narrow screens
+   ========================================================================== */
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 40px;
+  }
+
+  .hero__fox { max-width: 260px; justify-self: start; }
+  .hero__title { max-width: 100%; }
+}
+
+@media (max-width: 860px) {
+  .beat { grid-template-columns: minmax(0, 1fr); }
+  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .math { height: 320vh; }
+  /* the closer stays a plain block on a phone: a sticky, opaque bar pinned to the
+     bottom of the viewport covered a third of the screen and hid the paper behind it */
+  .closer { padding-block: clamp(50px, 12vw, 78px); }
+}
+
+/* .gallery is the same component, so its 420px step moves with the 860px one.
+   If it stayed in tokens.css it would load first and the 860px rule above —
+   which also matches below 420px — would win, and the gallery would stay two
+   columns on the narrowest phones. */
+@media (max-width: 420px) {
+  .gallery { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
 <script>document.documentElement.className += ' js';</script>
 </head>
 <body>

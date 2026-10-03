@@ -956,34 +956,6 @@ section { position: relative; }
   100% { opacity: 1; }
 }
 
-@media (max-width: 860px) {
-  .hero {
-    grid-template-columns: 1fr;
-    padding-top: 40px;
-  }
-
-  .hero__fox { max-width: 260px; justify-self: start; }
-  .hero__title { max-width: 100%; }
-}
-
-@media (max-width: 860px) {
-  .beat { grid-template-columns: minmax(0, 1fr); }
-  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .math { height: 320vh; }
-
-  .closer {
-    position: sticky;
-    bottom: 0;
-    padding-block: 22px;
-    background: var(--paper2);
-    border-top: var(--bw) solid var(--ink);
-  }
-}
-
-@media (max-width: 420px) {
-  .gallery { grid-template-columns: minmax(0, 1fr); }
-}
-
 /* ==========================================================================
    about — a quiet page, mostly typography
    ========================================================================== */

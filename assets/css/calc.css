@@ -471,7 +471,11 @@ main.calc ~ .foot {
 }
 
 @media (max-width: 720px) {
-  .calc { padding-bottom: 0; }
+  /* the pinned steps bar owns the last 62px of the viewport. The footer is the
+     last thing in the document, so that clear space has to live on the footer:
+     padding <main> instead only opens a gap above it and leaves the footer text
+     under the bar at the end of the scroll */
+  main.calc ~ .foot { padding-bottom: 88px; }
 
   .calc__grid { grid-template-columns: minmax(0, 1fr); }
 
@@ -506,11 +510,16 @@ main.calc ~ .foot {
 
   .switch { min-width: 118px; pointer-events: auto; }/* the sheet and the floating dock are position:fixed inside main, and the
        footer is a later sibling at the same z-index — without this they paint
-       under the footer and quietly stop taking clicks */
-    .page.calc { z-index: 2; }
+       under the footer and quietly stop taking clicks. It also has to clear the
+       masthead's z-index 4: main is a stacking context, so the backdrop's own
+       z-index 6 never escapes it, and at 2 the open sheet left the header bright
+       and tappable instead of dimmed behind the modal. */
+    .page.calc { z-index: 5; }
 
-    /* steps open as a bottom sheet: only the panel slides, so the tab stays
-       on screen and the sheet can always be reached and dismissed */
+    /* steps open as a bottom sheet: only the panel moves, so the tab stays
+       on screen and the sheet can always be reached and dismissed. The panel
+       hangs above the bar rather than under it, so a closed drawer is the 62px
+       tab alone and never paints over the floating dock */
     .drawer {
       position: fixed;
       left: 0;
@@ -520,15 +529,29 @@ main.calc ~ .foot {
       z-index: 7;
       border-radius: var(--r-lg) var(--r-lg) 0 0;
       box-shadow: 0 -4px 0 var(--ink);
+      overflow: visible;
     }
 
     .drawer__panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 100%;
       max-height: 52vh;
+      overflow: hidden;
+      background: var(--paper2);
+      border-radius: var(--r-lg) var(--r-lg) 0 0;
+      visibility: hidden;
       transform: translateY(100%);
-      transition: transform 340ms var(--ease);
+      transition: transform 340ms var(--ease), visibility 340ms var(--ease);
     }
 
-    .drawer[data-open='true'] .drawer__panel { transform: none; }
+    .drawer[data-open='true'] .drawer__panel {
+      max-height: 52vh;
+      transform: none;
+      visibility: visible;
+      overflow-y: auto;
+    }
 
     .drawer__tab { padding: 14px 18px; }
 }

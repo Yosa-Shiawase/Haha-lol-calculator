@@ -351,8 +351,12 @@
       return;
     }
 
-    /* starting to work dismisses the sheet, so it never sits over the keys */
-    if (drawer.getAttribute('data-open') === 'true') setDrawer(false);
+    /* starting to work dismisses the sheet, so it never sits over the keys.
+       Only a key that actually starts work does that — Tab, the arrows and the
+       modifiers are navigation, and closing the panel out from under someone
+       who is only trying to move through it loses their place. */
+    var startsWork = k === 'Backspace' || (!inField && (TYPED[k] || /^[0-9a-z.]$/i.test(k)));
+    if (startsWork && drawer.getAttribute('data-open') === 'true') setDrawer(false);
 
     if (k === 'Backspace') {
       if (inField) { preview(); return; }
