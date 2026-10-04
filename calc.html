@@ -75,6 +75,44 @@
           <button type="button" class="switch__btn" data-mode="rad" aria-pressed="false">RAD</button>
         </div>
         <button type="button" class="btn btn--sm" data-mic aria-pressed="false">Talk to Kitsu</button>
+
+        <button type="button" class="btn btn--sm" data-settings-toggle aria-expanded="false" aria-controls="settings">
+          Display<span class="vh"> settings</span>
+        </button>
+
+        <div class="settings" id="settings" data-settings data-open="false">
+          <div class="settings__row">
+            <span class="settings__label" id="fix-label">Decimals</span>
+            <div class="settings__keys" role="group" aria-labelledby="fix-label">
+              <button type="button" class="settings__key settings__key--wide is-on" data-fix="auto" aria-pressed="true">auto</button>
+              <button type="button" class="settings__key" data-fix="0" aria-pressed="false">0</button>
+              <button type="button" class="settings__key" data-fix="1" aria-pressed="false">1</button>
+              <button type="button" class="settings__key" data-fix="2" aria-pressed="false">2</button>
+              <button type="button" class="settings__key" data-fix="3" aria-pressed="false">3</button>
+              <button type="button" class="settings__key" data-fix="4" aria-pressed="false">4</button>
+              <button type="button" class="settings__key" data-fix="5" aria-pressed="false">5</button>
+              <button type="button" class="settings__key" data-fix="6" aria-pressed="false">6</button>
+              <button type="button" class="settings__key" data-fix="7" aria-pressed="false">7</button>
+              <button type="button" class="settings__key" data-fix="8" aria-pressed="false">8</button>
+              <button type="button" class="settings__key" data-fix="9" aria-pressed="false">9</button>
+            </div>
+          </div>
+          <div class="settings__row">
+            <span class="settings__label" id="sci-label">Powers of ten</span>
+            <div class="switch" role="group" aria-labelledby="sci-label">
+              <button type="button" class="switch__btn is-on" data-sci="off" aria-pressed="true">Plain</button>
+              <button type="button" class="switch__btn" data-sci="on" aria-pressed="false">Sci</button>
+            </div>
+          </div>
+          <div class="settings__row">
+            <span class="settings__label" id="exact-label">Answers</span>
+            <div class="switch" role="group" aria-labelledby="exact-label">
+              <button type="button" class="switch__btn is-on" data-exact="off" aria-pressed="true">Decimal</button>
+              <button type="button" class="switch__btn" data-exact="on" aria-pressed="false">Exact</button>
+            </div>
+          </div>
+          <p class="settings__note" data-settings-note>Plain numbers. Too big or too small for plain notation and Kitsu writes the power of ten for you.</p>
+        </div>
       </div>
     </aside>
 
@@ -83,7 +121,12 @@
 
     <section class="core" aria-label="Calculator">
       <div class="display">
-        <p class="display__label"><span data-angles>DEG</span> &middot; <span data-ops>implicit times on</span></p>
+        <p class="display__label">
+          <span data-angles>DEG</span>
+          <span class="display__tag" data-layer>1st</span>
+          <span class="display__tag display__tag--mem" data-mem hidden>M</span>
+          <span data-ops>implicit times on</span>
+        </p>
         <input class="display__expr" id="expr" type="text" inputmode="text" autocomplete="off"
                autocapitalize="off" autocorrect="off" spellcheck="false"
                placeholder="2 + 3 &#215; 4" aria-label="Expression" aria-describedby="expr-help">
@@ -106,10 +149,7 @@
         <button type="button" class="key key--fn" data-ins="acos(">cos⁻¹</button>
         <button type="button" class="key key--fn" data-ins="atan(">tan⁻¹</button>
         <button type="button" class="key key--fn" data-ins="abs(">abs</button>
-        <button type="button" class="key key--fn" data-sign>±</button>
-        <button type="button" class="key key--fn" data-append="^2">x²</button>
         <button type="button" class="key key--fn" data-ins="^">xʸ</button>
-        <button type="button" class="key key--fn" data-append="^-1">1/x</button>
         <button type="button" class="key key--fn" data-ins="det(">det</button>
         <button type="button" class="key key--fn" data-append="!">n!</button>
         <button type="button" class="key key--fn" data-ins="e">e</button>
@@ -125,15 +165,16 @@
       </div>
 
       <div class="pad pad--main" aria-label="Keys">
-        <button type="button" class="key key--fn" data-ins="sin(">sin</button>
-        <button type="button" class="key key--fn" data-ins="cos(">cos</button>
-        <button type="button" class="key key--fn" data-ins="tan(">tan</button>
+        <button type="button" class="key key--2nd" data-2nd-key aria-pressed="false">2nd</button>
+        <button type="button" class="key key--fn key--alt" data-ins="sin(" data-ins-2nd="asin(" data-l1="sin" data-l2="sin&#8315;&#185;">sin</button>
+        <button type="button" class="key key--fn key--alt" data-ins="cos(" data-ins-2nd="acos(" data-l1="cos" data-l2="cos&#8315;&#185;">cos</button>
+        <button type="button" class="key key--fn key--alt" data-ins="tan(" data-ins-2nd="atan(" data-l1="tan" data-l2="tan&#8315;&#185;">tan</button>
         <button type="button" class="key key--fn" data-ins="π">π</button>
-        <button type="button" class="key key--op key--clear" data-clear>C</button>
 
-        <button type="button" class="key key--fn" data-ins="ln(">ln</button>
-        <button type="button" class="key key--fn" data-ins="log(">log</button>
-        <button type="button" class="key key--fn" data-ins="√(">√</button>
+        <button type="button" class="key key--op key--clear" data-clear>C</button>
+        <button type="button" class="key key--fn key--alt" data-ins="ln(" data-ins-2nd="×e^" data-l1="ln" data-l2="e&#7495;">ln</button>
+        <button type="button" class="key key--fn key--alt" data-ins="log(" data-ins-2nd="×10^" data-l1="log" data-l2="10&#7495;">log</button>
+        <button type="button" class="key key--fn key--alt" data-ins="√(" data-ins-2nd="cbrt(" data-l1="√" data-l2="&#8309;&#8730;">√</button>
         <button type="button" class="key key--fn" data-ins="^">^</button>
         <button type="button" class="key key--op" data-backspace>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
@@ -163,9 +204,20 @@
 
         <button type="button" class="key" data-ins="0">0</button>
         <button type="button" class="key" data-ins=".">.</button>
-        <button type="button" class="key key--eq" data-solve>=</button>
         <button type="button" class="key key--op" data-ins="+">+</button>
         <button type="button" class="key key--fn" data-ans>ANS</button>
+        <button type="button" class="key key--eq" data-solve>=</button>
+
+        <button type="button" class="key key--op" data-sign>±</button>
+        <button type="button" class="key key--fn" data-append="^-1">1/x</button>
+        <button type="button" class="key key--fn key--alt" data-append="^2" data-append-2nd="^3" data-l1="x&#178;" data-l2="x&#179;">x&#178;</button>
+        <button type="button" class="key key--fn" data-append="%">%</button>
+        <button type="button" class="key key--fn" data-ins="×10^">&#215;10&#7495;</button>
+
+        <button type="button" class="key key--mem" data-mem-add>M+</button>
+        <button type="button" class="key key--mem" data-mem-sub>M&#8722;</button>
+        <button type="button" class="key key--mem" data-mem-rec>MR</button>
+        <button type="button" class="key key--mem key--mem-clear" data-mem-clr>MC</button>
       </div>
     </section>
 

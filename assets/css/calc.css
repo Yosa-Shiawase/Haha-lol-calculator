@@ -79,12 +79,47 @@
   border: var(--bw) solid var(--ink);
   border-radius: var(--r-md);
 }.display__label {
+    display: flex;
+  flex-wrap: wrap;
+  column-gap: 10px;
     margin: 0 0 4px;
   font-family: var(--mono);
   font-size: .7rem;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--ink);
+}
+
+/* the tags in the display line are separated by a dot that is drawn, not
+   typed, so a hidden tag never leaves a dot hanging in mid-air */
+.display__label > *::before {
+  content: "\00b7";
+  margin-right: 10px;
+  color: var(--ink-30);
+}
+
+.display__label > *:first-child::before {
+  content: none;
+  margin-right: 0;
+}
+
+/* the 2nd layer and the memory light, both of which must be unmissable */
+.display__tag {
+  font-weight: 700;
+}
+
+.calc[data-2nd='true'] .display__tag[data-layer] {
+  padding: 0 6px;
+  background: var(--fox);
+  color: var(--ink);
+  border-radius: var(--r-pill);
+}
+
+.display__tag--mem {
+  padding: 0 6px;
+  background: var(--ink);
+  color: var(--fox);
+  border-radius: var(--r-pill);
 }
 
 .display__expr {
@@ -356,6 +391,110 @@ main.calc ~ .foot {
   color: var(--ink);
   font-size: 1.4rem;
   font-weight: 700;
+}
+
+/* ---- the 2nd layer ----------------------------------------------------
+   The pressed state has to be unmissable from across a desk: the key that
+   holds the layer goes black, every key that owns a second meaning turns
+   the accent orange, and the display line says which layer is live. Three
+   places, because one is never enough. */
+
+.key--2nd {
+  background: var(--card);
+  font-size: .78rem;
+  letter-spacing: .04em;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.key--2nd[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--fox);
+  box-shadow: var(--sh-sm);
+}
+
+.calc[data-2nd='true'] .key--alt {
+  background: var(--fox);
+  color: var(--paper2);
+  font-weight: 700;
+}
+
+.calc[data-2nd='true'] .key--alt:hover { background: var(--fox); }
+
+/* ---- memory ----------------------------------------------------------- */
+
+.key--mem {
+  background: var(--card);
+  font-size: .86rem;
+  letter-spacing: .04em;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.key--mem-clear { grid-column: span 2; }
+
+.key--mem.is-holding {
+  background: var(--ink);
+  color: var(--fox);
+}
+
+/* ---- the display dials ------------------------------------------------
+   A disclosure inside the dock, not a page: the calculator is the product
+   and settings are a footnote to it. */
+
+.settings {
+  display: none;
+  padding: 12px;
+  background: var(--card);
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-md);
+}
+
+.settings[data-open='true'] { display: block; }
+
+.settings__row + .settings__row { margin-top: 12px; }
+
+.settings__label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: .64rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.settings__keys {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.settings__key {
+  padding: 5px 0;
+  border: var(--bw) solid var(--ink);
+  border-radius: 6px;
+  background: var(--paper2);
+  font-family: var(--mono);
+  font-size: .68rem;
+  font-weight: 500;
+  color: var(--ink);
+  transition: background var(--t-micro) var(--ease);
+}
+
+.settings__key--wide { grid-column: span 5; }
+
+.settings__key.is-on {
+  background: var(--fox);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.settings__note {
+  margin: 10px 0 0;
+  font-size: .72rem;
+  line-height: 1.4;
+  color: var(--ink);
 }
 
 /* ==========================================================================

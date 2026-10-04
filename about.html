@@ -97,6 +97,7 @@
         <tr><th scope="row"><kbd>0</kbd>&ndash;<kbd>9</kbd> <kbd>.</kbd></th><td>digits and the decimal point</td></tr>
         <tr><th scope="row"><kbd>+</kbd> <kbd>&minus;</kbd> <kbd>*</kbd> <kbd>/</kbd></th><td>operators, shown back as <span class="m">+ &minus; &times; &divide;</span></td></tr>
         <tr><th scope="row"><kbd>(</kbd> <kbd>)</kbd> <kbd>^</kbd> <kbd>!</kbd></th><td>brackets, power and factorial</td></tr>
+        <tr><th scope="row"><kbd>%</kbd></th><td>a hundredth. Beside a <span class="m">+</span> or <span class="m">&minus;</span> it is a slice of whatever it sits beside, so <span class="m">200 + 10 %</span> is <span class="m">220</span>.</td></tr>
         <tr><th scope="row"><kbd>Enter</kbd> or <kbd>=</kbd></th><td>solve, and let Kitsu narrate it</td></tr>
         <tr><th scope="row"><kbd>Esc</kbd></th><td>close the steps panel, then clear everything</td></tr>
         <tr><th scope="row"><kbd>Backspace</kbd></th><td>tidy one character</td></tr>
@@ -115,6 +116,7 @@
         <tr><th scope="row"><span class="m">acos(1)</span> <span class="m">atan(1)</span></th><td><span class="m">0</span> and <span class="m">45</span></td></tr>
         <tr><th scope="row"><span class="m">ln(e)</span> <span class="m">log(100)</span></th><td><span class="m">1</span> and <span class="m">2</span>. <span class="m">log</span> is base ten, <span class="m">ln</span> is natural.</td></tr>
         <tr><th scope="row"><span class="m">sqrt(16)</span></th><td><span class="m">4</span></td></tr>
+        <tr><th scope="row"><span class="m">cbrt(27)</span></th><td><span class="m">3</span> &mdash; and unlike a square root, <span class="m">cbrt(&minus;8)</span> is the real <span class="m">&minus;2</span>.</td></tr>
         <tr><th scope="row"><span class="m">abs(-7)</span></th><td><span class="m">7</span></td></tr>
         <tr><th scope="row"><span class="m">sign(-9)</span></th><td><span class="m">-1</span> &mdash; and <span class="m">sign(0)</span> is <span class="m">0</span>.</td></tr>
         <tr><th scope="row"><span class="m">round(2.567, 1)</span></th><td><span class="m">2.6</span>. Give one argument and it rounds to a whole number; give two and the second is how many decimals to keep.</td></tr>
@@ -143,13 +145,54 @@
       </tbody>
     </table>
 
-    <h3>The fn row</h3>
+    <h3>The two keys that change the pad</h3>
     <p>The orange <b>fn</b> key swaps the keypad between two pages of keys. The
       main page carries what you need day to day &mdash;
       <span class="m">sin cos tan &pi;</span>,
       <span class="m">ln log &radic;</span>, the digits, <span class="m">+ &minus;
-      &times; &divide;</span>, the brackets, <span class="m">!</span> and
-      <b>ANS</b>. The second page holds the rest:</p>
+      &times; &divide;</span>, the brackets, <span class="m">!</span>,
+      <b>ANS</b>, the quick operations <span class="m">&plusmn; 1/x x&sup2; %
+      &times;10&#7495;</span> and a memory of four keys. The second page holds
+      the rest:</p>
+    <p>The black <b>2nd</b> key above <span class="m">sin</span> gives every
+      one of those functions a second meaning, and tells you which layer you
+      are on by turning the whole row orange:</p>
+    <table class="keys">
+      <caption class="vh">The 2nd layer</caption>
+      <tbody>
+        <tr><th scope="row"><span class="m">sin cos tan</span></th><td><span class="m">sin&#8315;&sup1; cos&#8315;&sup1; tan&#8315;&sup1;</span>, so an inverse needs no keyboard.</td></tr>
+        <tr><th scope="row"><span class="m">ln log</span></th><td><span class="m">e&#7495;</span> and <span class="m">10&#7495;</span>. Press either and Kitsu waits for the exponent.</td></tr>
+        <tr><th scope="row"><span class="m">&radic; x&sup2;</span></th><td><span class="m">&sup3;&radic;</span> and <span class="m">x&sup3;</span>.</td></tr>
+      </tbody>
+    </table>
+    <p><b>M+</b> keeps the last answer, <b>M&minus;</b> takes one back out,
+      <b>MR</b> brings the stored number in as an operand and <b>MC</b>
+      empties it. An <span class="m">M</span> sits in the display whenever
+      there is something to recall. <b>MR</b> follows exactly the rule
+      <b>ANS</b> does &mdash; it only goes where an operand belongs, and
+      flashes the edge if you ask it to go anywhere else.</p>
+    <p>The <b>Display</b> button under Kitsu opens three dials: fixed decimal
+      places from <span class="m">0</span> to <span class="m">9</span>, a
+      scientific toggle for the answers that plain notation cannot carry, and
+      an <b>Exact</b> toggle for the answers that can be said exactly.</p>
+    <h4>What counts as exact</h4>
+    <p>Exact means one of three things, and only those three. Anything
+      wider comes back as a decimal, because an answer that is
+      <em>close</em> to the right one is worse than one that says so.</p>
+    <table class="keys">
+      <caption class="vh">Answers the exact layer can prove</caption>
+      <tbody>
+        <tr><th scope="row"><span class="m">a fraction, denominator 10000 or less</span></th><td><span class="m">2/3 + 1/6</span> is <span class="m">5/6</span>, and <span class="m">0.1</span> is <span class="m">1/10</span></td></tr>
+        <tr><th scope="row"><span class="m">a root, simplified</span></th><td><span class="m">√12</span> is <span class="m">2√3</span>; roots multiply and divide too, so <span class="m">√2 × √3</span> is <span class="m">√6</span></td></tr>
+        <tr><th scope="row"><span class="m">the standard angles, in degrees</span></th><td><span class="m">sin(45)</span> is <span class="m">√2/2</span>, <span class="m">cos(30)</span> is <span class="m">√3/2</span>, <span class="m">tan(60)</span> is <span class="m">√3</span></td></tr>
+        <tr><th scope="row"><span class="m">a rational times &pi; or e</span></th><td><span class="m">2&pi;</span> is <span class="m">2&pi;</span> and <span class="m">3&pi;/4</span> is <span class="m">3&pi;/4</span></td></tr>
+      </tbody>
+    </table>
+    <p>A fifteen-degree cosine is the sum of two roots, and
+      <span class="m">&pi;²</span> is not a rational times
+      &pi;, so both stay decimal. Every exact step in the
+      <b>∑ Steps</b> panel carries its decimal beside it, so Kitsu can
+      read you either one.</p>
     <table class="keys">
       <caption class="vh">What the fn row holds</caption>
       <tbody>
@@ -157,7 +200,7 @@
         <tr><th scope="row"><span class="m">abs e mod gcd lcm</span></th><td>insert the name with the bracket already open.</td></tr>
         <tr><th scope="row"><span class="m">det nCr nPr hypot</span></th><td>the same, for the arithmetic you would otherwise have to write out.</td></tr>
         <tr><th scope="row"><span class="m">round floor ceil</span></th><td>tidy an answer up.</td></tr>
-        <tr><th scope="row"><span class="m">&plusmn; x&#178; n! 1/x</span></th><td>act on whatever is already in the box &mdash; flip its sign, square it, count it, or turn it into its reciprocal.</td></tr>
+        <tr><th scope="row"><span class="m">n!</span></th><td>count whatever whole number is in the box.</td></tr>
         <tr><th scope="row"><span class="m">x&#7495;</span></th><td>the same <span class="m">^</span> as the main page.</td></tr>
       </tbody>
     </table>
@@ -267,6 +310,31 @@
   <section class="doc__section" data-reveal>
     <h2>Changelog</h2>
     <ol class="log">
+      <li>
+        <p class="log__head"><b>1.2</b> &middot; 4 October 2026</p>
+        <ul>
+          <li>A <b>2nd</b> key, which turns the function row orange and swaps
+            <span class="m">sin cos tan ln log &radic; x&sup2;</span> for
+            <span class="m">sin&#8315;&sup1; cos&#8315;&sup1; tan&#8315;&sup1; e&#7495; 10&#7495; &sup3;&radic; x&sup3;</span>.</li>
+          <li>Quick operations on the main page: <span class="m">&plusmn; 1/x
+            x&sup2; % &times;10&#7495;</span>, and a memory of
+            <span class="m">M+ M&minus; MR MC</span> with an
+            <span class="m">M</span> in the display while it holds
+            something.</li>
+          <li>Display settings: fixed decimal places from <span class="m">0</span>
+            to <span class="m">9</span>, a scientific toggle for very large
+            and very small answers, and an <b>Exact</b> toggle that shows a
+            fraction, a simplified root, a standard angle or a rational
+            times <span class="m">&pi;</span> exactly &mdash; and shows nothing
+            else as anything but a decimal.</li>
+          <li>A new function, <span class="m">cbrt</span>. A cube root of a
+            negative is a real number, so it answers where
+            <span class="m">sqrt</span> stops.</li>
+          <li><span class="m">%</span> is a hundredth everywhere &mdash; and
+            beside a <span class="m">+</span> or <span class="m">&minus;</span>
+            it is a slice of what it sits beside.</li>
+        </ul>
+      </li>
       <li>
         <p class="log__head"><b>1.1</b> &middot; 2 October 2026</p>
         <ul>

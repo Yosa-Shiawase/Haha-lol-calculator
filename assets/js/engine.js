@@ -19,7 +19,7 @@
 
   var FUNCS = {
     sin: 1, cos: 1, tan: 1, asin: 1, acos: 1, atan: 1,
-    ln: 1, log: 1, sqrt: 1, abs: 1,
+    ln: 1, log: 1, sqrt: 1, cbrt: 1, abs: 1,
     mod: 2, gcd: 2, lcm: 2, ncr: 2, npr: 2, hypot: 2,
     round: 1, floor: 1, ceil: 1, sign: 1, det: 9
   };
@@ -105,6 +105,7 @@
       if (c === ')') { out.push({ t: ')', v: ')', s: c, i: i++ }); continue; }
       if (c === ',') { out.push({ t: ',', v: ',', s: c, i: i++ }); continue; }
       if (c === '!') { out.push({ t: '!', v: '!', s: c, i: i++ }); continue; }
+      if (c === '%') { out.push({ t: '%', v: '%', s: c, i: i++ }); continue; }
       if ('+-*/^'.indexOf(c) !== -1) { out.push({ t: 'op', v: c, s: c, i: i++ }); continue; }
 
       throw { code: 'unknown' };
@@ -161,9 +162,10 @@
 
     function postfix() {
       var node = atom();
-      while (at('!')) {
-        next();
-        node = { type: 'fact', arg: node };
+      for (;;) {
+        if (at('!')) { next(); node = { type: 'fact', arg: node }; continue; }
+        if (at('%')) { next(); node = { type: 'pct', arg: node }; continue; }
+        break;
       }
       return node;
     }
@@ -230,18 +232,36 @@
     /* 15 significant digits is where a double stops lying about itself */
     var r = Number(v.toPrecision(15));
     return r === 0 ? 0 : r;
+  }/* display rounding is separate from internal precision */
+  var SHOW = 12;
+  var WIDE = 1e15;      /* past this plain notation stops being readable */
+  var THIN = 1e-6;      /* under this the zeros are more answer than digits */
+
+  function exponent(t, digits) {
+    return t.toExponential(digits).replace(/(\.\d*?)0+e/, '$1e').replace(/\.e/, 'e');
   }
 
-  /* display rounding is separate from internal precision */
-  var SHOW = 12;
-
-  function format(v) {
+  /* Two optional dials, both absent by default, so a caller that asks for
+     nothing gets exactly the house style it has always had:
+       fix  0..9    that many decimal places, always, rounded
+       sci  true    every answer in powers of ten; FIX then decides how many
+                    digits sit in the mantissa                                  */
+  function format(v, opts) {
+    var o = opts || {};
+    var fix = typeof o.fix === 'number' ? o.fix : null;
     var t = tidy(v);
     var a = Math.abs(t);
-    if (a === 0) return '0';if (a >= 1e15 || a < 1e-6) return t.toExponential(SHOW - 6).replace(/(\.\d*?)0+e/, '$1e').replace(/\.e/, 'e');
-      /* whole numbers keep every digit; fractions stop at nine decimals */
-      if (t % 1 === 0) return String(t);
-      return String(Number(t.toFixed(9)));
+
+    if (o.sci) return t === 0 ? '0' : exponent(t, fix === null ? SHOW - 6 : fix);
+
+    /* too big or too small for plain notation, whatever else was asked for */
+    if (a !== 0 && (a >= WIDE || a < THIN)) return exponent(t, SHOW - 6);
+
+    if (fix !== null) return t.toFixed(fix);
+
+    /* whole numbers keep every digit; fractions stop at nine decimals */
+    if (t % 1 === 0) return String(t);
+    return String(Number(t.toFixed(9)));
   }
 
   function render(node, parent) {
@@ -254,6 +274,7 @@
       case 'group': return '(' + render(node.arg, 0) + ')';
       case 'neg': s = '-' + render(node.arg, PREC.neg); break;
       case 'fact': s = render(node.arg, PREC.fact) + ' !'; break;
+      case 'pct': s = render(node.arg, PREC.fact) + ' %'; break;
       case 'pow': s = render(node.l, PREC.fact + 0.5) + ' ^ '
         + render(node.r, node.r.type === 'neg' ? PREC.neg : PREC.pow + 0.5); break;
       case 'fn': s = node.name + '(' + (node.args || [node.arg]).map(function (a) { return render(a, 0); }).join(', ') + ')'; break;
@@ -284,6 +305,8 @@
       switch (name) {
         case 'abs': return Math.abs(x);
         case 'sqrt': if (x < 0) throw { code: 'negsqrt' }; return Math.sqrt(x);
+        /* a cube root of a negative is a real number, so this one is not a domain error */
+        case 'cbrt': return Math.cbrt(x);
         case 'ln': if (x <= 0) throw { code: 'domain' }; return quiet(Math.log(x));
         case 'log': if (x <= 0) throw { code: 'domain' }; return quiet(Math.log10(x));
         case 'round': {
@@ -341,8 +364,240 @@
     }
   }
 
-  /* a compound operand shows its value; a literal keeps its own face */
-  function operandText(node, v) {
+/* ---- exact values ------------------------------------------------------
+   Bounded on purpose. An answer is only called exact when it is provably one
+   of three families, and anything outside them comes back null and is printed
+   as a decimal. An approximation is never dressed up as an exact answer:
+     a rational whose denominator is at most MAX_DEN
+     a rational times the square root of a squarefree integer
+     a rational times pi, or a rational times e
+   A term is { a: {n, d}, s } where s is 1 for a plain rational, 'pi' or 'e',
+   or the radicand of a root. */
+
+var MAX_DEN = 10000;
+var SQ = '\u221a';
+var PI = '\u03c0';
+
+function gcd(a, b) {
+  while (b) { var t = b; b = a % b; a = t; }
+  return Math.abs(a);
+}
+
+/* a reduced rational, or null if these two numbers cannot be one */
+function rat(n, d) {
+  if (!isFinite(n) || !isFinite(d) || d === 0) return null;
+  if (n % 1 !== 0 || d % 1 !== 0) return null;
+  if (d < 0) { n = -n; d = -d; }
+  var g = gcd(n, d) || 1;
+  return { n: n / g, d: d / g };
+}
+
+/* the last gate before a term is allowed to claim to be exact */
+function ex(a, s) {
+  var f = rat(a.n, a.d);
+  if (!f || f.d > MAX_DEN) return null;
+  return { a: f, s: s === undefined ? 1 : s };
+}
+
+/* k squared times s, with s squarefree — the only factoring needed here */
+function sqf(k) {
+  var out = 1;
+  var top = Math.sqrt(k);
+  for (var i = 2; i <= top; i++) {
+    while (k % (i * i) === 0) { k /= i * i; out *= i; }
+  }
+  return { k: out, s: k };
+}
+
+/* a typed literal is exactly the fraction it was written as, if the fraction
+   is small enough to be worth saying. 0.1 is 1/10; 1e-7 is nothing at all. */
+function fromNumber(v) {
+  if (!isFinite(v)) return null;
+  if (v % 1 === 0) return ex({ n: v, d: 1 }, 1);
+  var m = /^(-?)(\d*)(?:\.(\d*))?$/.exec(String(v));
+  if (!m) return null;
+  var den = Math.pow(10, (m[3] || '').length);
+  var num = parseInt((m[2] || '') + (m[3] || ''), 10);
+  return ex({ n: m[1] ? -num : num, d: den }, 1);
+}
+
+function ipow(k, n) {
+  if (n < 0 || n > 12) return NaN;
+  var r = 1;
+  for (var i = 0; i < n; i++) r *= k;
+  return r;
+}
+
+/* sqrt(n/d) is sqrt(n*d)/d, which is inside the bounds whenever n*d is */
+function exSqrt(x) {
+  if (!x || x.s !== 1 || x.a.n < 0) return null;
+  if (x.a.n === 0) return ex({ n: 0, d: 1 }, 1);
+  var t = sqf(x.a.n * x.a.d);
+  return ex({ n: t.k, d: x.a.d }, t.s);
+}
+
+function exAdd(x, y, sign) {
+  if (!x || !y || x.s !== y.s) return null;
+  return ex({ n: x.a.n * y.a.d + sign * y.a.n * x.a.d, d: x.a.d * y.a.d }, x.s);
+}
+
+function exMul(x, y) {
+  if (!x || !y) return null;
+  if (y.s === 1) return ex({ n: x.a.n * y.a.n, d: x.a.d * y.a.d }, x.s);
+  if (x.s === 1) return ex({ n: x.a.n * y.a.n, d: x.a.d * y.a.d }, y.s);
+  /* two roots: the radicands multiply, and what squares out moves into the
+     coefficient, so sqrt(2) * sqrt(2) is 2 and not sqrt(4) */
+  var t = sqf(x.s * y.s);
+  return ex({ n: x.a.n * y.a.n * t.k, d: x.a.d * y.a.d }, t.s);
+}
+
+function exDiv(x, y) {
+  if (!x || !y || y.a.n === 0) return null;
+  if (y.s === 1) return ex({ n: x.a.n * y.a.d, d: x.a.d * y.a.n }, x.s);
+  if (x.s === 1) return null;              /* 1 / sqrt(2) is outside the bounds */
+  /* sqrt(r)/sqrt(s) is sqrt(r*s)/s */
+  var t = sqf(x.s * y.s);
+  return ex({ n: x.a.n * y.a.d * t.k, d: x.a.d * y.a.n * y.s }, t.s);
+}
+
+function exPow(base, exp) {
+  if (!base || !exp || exp.s !== 1) return null;
+  var n = exp.a.n;
+  var d = exp.a.d;
+
+  if (d === 1) {
+    if (n < 0) {
+      base = { a: { n: base.a.d, d: base.a.n }, s: base.s };
+      n = -n;
+    }
+    /* pi and e only survive their own first power */
+    if (base.s !== 1 && n !== 1) return null;
+    return ex({ n: ipow(base.a.n, n), d: ipow(base.a.d, n) }, base.s);
+  }
+  if (d === 2 && n === 1) return base.s === 1 ? exSqrt(base) : null;
+  return null;
+}
+
+/* the standard angles, and only those: a 15-degree cosine is a sum of two
+   roots and would be outside the bounds, so it simply stays decimal */
+var COS = {
+  0: [1, 1], 30: [1, 2, 3], 45: [1, 2, 2], 60: [1, 2], 90: [0, 1],
+  120: [-1, 2], 135: [-1, 2, 2], 150: [-1, 2, 3], 180: [-1, 1],
+  225: [-1, 2, 2], 240: [-1, 2], 270: [0, 1], 300: [1, 2], 315: [1, 2, 2], 330: [1, 2, 3]
+};
+
+var TAN = {
+  0: [0, 1], 45: [1, 1], 60: [1, 1, 3], 120: [-1, 1, 3], 135: [-1, 1],
+  180: [0, 1], 225: [1, 1], 240: [1, 1, 3], 300: [-1, 1, 3], 315: [-1, 1]
+};
+
+function exactAngle(name, node, o) {
+  if (o.mode !== 'deg') return null;
+  var x = exact(node, o);
+  if (!x || x.s !== 1 || x.a.d !== 1) return null;
+  var deg = ((x.a.n % 360) + 360) % 360;
+  var row = name === 'tan' ? TAN[deg] : (name === 'cos' ? COS[deg] : COS[((90 - deg) % 360 + 360) % 360]);
+  return row ? ex({ n: row[0], d: row[1] }, row.length > 2 ? row[2] : 1) : null;
+}
+
+function exOne() { return ex({ n: 1, d: 1 }, 1); }
+
+function exactFn(node, o) {
+  var name = node.name;
+  var args = node.args || [node.arg];
+  var x = args.length === 1 ? exact(args[0], o) : null;
+
+  if (name === 'sqrt') return x && exSqrt(x);
+  if (name === 'abs') return x && ex({ n: Math.abs(x.a.n), d: x.a.d }, x.s);
+  if (name === 'cbrt') {
+    if (!x || x.s !== 1 || x.a.n < 0) return null;
+    var n = Math.round(Math.cbrt(x.a.n));
+    var d = Math.round(Math.cbrt(x.a.d));
+    return n * n * n === x.a.n && d * d * d === x.a.d ? ex({ n: n, d: d }, 1) : null;
+  }
+  if (name === 'ln') {
+    if (x && x.s === 'e' && x.a.n === 1 && x.a.d === 1) return exOne();
+    return x && x.s === 1 && x.a.n === x.a.d ? ex({ n: 0, d: 1 }, 1) : null;
+  }
+  if (name === 'log') {
+    if (x && x.s === 1 && x.a.n === 10 && x.a.d === 1) return exOne();
+    return x && x.s === 1 && x.a.n === x.a.d ? ex({ n: 0, d: 1 }, 1) : null;
+  }
+  if (name === 'sin' || name === 'cos' || name === 'tan') return exactAngle(name, args[0], o);
+  return null;
+}
+
+/* the walk, again, for the value nobody can see in decimal */
+function exact(node, o) {
+  switch (node.type) {
+    case 'num': return fromNumber(node.value);
+    case 'const':
+      if (node.name === 'pi') return ex({ n: 1, d: 1 }, 'pi');
+      if (node.name === 'e') return ex({ n: 1, d: 1 }, 'e');
+      return o.ansX || null;
+    case 'group': return exact(node.arg, o);
+    case 'neg': {
+      var g = exact(node.arg, o);
+      return g && ex({ n: -g.a.n, d: g.a.d }, g.s);
+    }
+    case 'pct': {
+      var p = exact(node.arg, o);
+      return p && ex({ n: p.a.n, d: p.a.d * 100 }, p.s);
+    }
+    case 'fact': {
+      var f = exact(node.arg, o);
+      if (!f || f.s !== 1 || f.a.d !== 1 || f.a.n < 0 || f.a.n > 20) return null;
+      return ex({ n: factorial(f.a.n), d: 1 }, 1);
+    }
+    case 'pow': return exPow(exact(node.l, o), exact(node.r, o));
+    case 'add': return exAdd(exact(node.l, o), exact(node.r, o), 1);
+    case 'sub': return exAdd(exact(node.l, o), exact(node.r, o), -1);
+    case 'mul': return exMul(exact(node.l, o), exact(node.r, o));
+    case 'div': return exDiv(exact(node.l, o), exact(node.r, o));
+    case 'fn': return exactFn(node, o);
+    default: return null;
+  }
+}
+
+/* a node is parsed fresh every solve, so its exact value is remembered on it
+   and never computed twice */
+function exactOf(node, o) {
+  if (node._x === undefined) node._x = exact(node, o);
+  return node._x;
+}function exactText(x) {
+    var n = x.a.n;
+    var d = x.a.d;
+    /* the house minus, never the one a terminal prints */
+    var sign = n < 0 ? '\u2212' : '';
+    var mag = Math.abs(n);
+    var body;
+
+    if (x.s === 'pi' || x.s === 'e') {
+      var sym = x.s === 'pi' ? PI : 'e';
+      body = sign + (mag === 1 ? '' : mag) + sym;
+      return d === 1 ? body : body + '/' + d;
+    }
+
+    if (x.s === 1) {
+      body = sign + mag;
+      return d === 1 ? body : body + '/' + d;
+    }
+
+    body = sign + (mag === 1 ? SQ + x.s : mag + SQ + x.s);
+    return d === 1 ? body : body + '/' + d;
+  }
+
+/* In exact mode a rung of the ladder carries both faces of the answer: the
+   exact one, and what it is worth in decimal, so Kitsu can say either. */
+function rung(v, x, o) {
+  var dec = format(v);
+  if (!o.exact || !x) return dec;
+  var exT = exactText(x);
+  return exT === dec ? exT : exT + ' = ' + dec;
+}
+
+/* a compound operand shows its value; a literal keeps its own face */
+function operandText(node, v) {
     var binary = node.type === 'add' || node.type === 'sub' || node.type === 'mul'
       || node.type === 'div' || node.type === 'pow';
     return binary ? format(v) : render(node, 0);
@@ -352,6 +607,7 @@
     var o = opts || {};
     var mode = o.mode === 'rad' ? 'rad' : 'deg';
     var state = { ans: typeof o.ans === 'number' ? o.ans : 0, steps: [] };
+    var xo = { mode: mode, ansX: o.ansX || null };
 
     function note(m, n) {
       state.steps.push(n ? { m: m, n: n } : { m: m });
@@ -372,9 +628,15 @@
 
         case 'neg': {
           var v = tidy(-walk(node.arg));
-          note('0 \u2212 ' + render(node.arg, 0) + ' = ' + format(v), NOTE.neg);
+          note('0 \u2212 ' + render(node.arg, 0) + ' = ' + rung(v, exactOf(node, xo), o), NOTE.neg);
           return v;
         }
+
+        /* percent is a hundredth, and says so by itself. The parent decides
+           whether it means a plain fraction or a slice of the thing beside
+           it — that is the one place % is not simply /100. */
+        case 'pct':
+          return walk(node.arg) / 100;
 
         case 'fact': {
           var a = walk(node.arg);
@@ -387,7 +649,7 @@
             for (var fi = whole; fi >= 1; fi--) parts.push(format(fi));
             chain = parts.join(' \u00d7 ') + ' = ';
           }
-          note(format(whole) + '! = ' + chain + format(f), NOTE.fact);
+          note(format(whole) + '! = ' + chain + rung(f, exactOf(node, xo), o), NOTE.fact);
           return f;
         }
 
@@ -395,7 +657,7 @@
           var base = walk(node.l);
           var exp = walk(node.r);
           var pw = tidy(Math.pow(base, exp));
-          note(render(node.l, 0) + ' ^ ' + render(node.r, 0) + ' = ' + format(pw), NOTE.pow);
+          note(render(node.l, 0) + ' ^ ' + render(node.r, 0) + ' = ' + rung(pw, exactOf(node, xo), o), NOTE.pow);
           return pw;
         }
 
@@ -411,7 +673,7 @@
           var out = tidy(applyFn(node.name, xs, mode));
           var trig = node.name === 'sin' || node.name === 'cos' || node.name === 'tan';
           var shown = node.name + '(' + nodes.map(function (a) { return render(a, 0); }).join(', ') + ')';
-          note(shown + ' = ' + format(out), trig ? NOTE[mode] : undefined);
+          note(shown + ' = ' + rung(out, exactOf(node, xo), o), trig ? NOTE[mode] : undefined);
           return out;
         }
 
@@ -420,8 +682,12 @@
           var r = walk(node.r);
           var res;
 
-          if (node.type === 'add') res = l + r;
-          else if (node.type === 'sub') res = l - r;
+          /* 200 + 10 % is 220, because a percentage is taken of what is beside
+             it. Every other parent reads % as the plain hundredth it is. */
+          var slice = node.r.type === 'pct' && (node.type === 'add' || node.type === 'sub');
+
+          if (node.type === 'add') res = slice ? l + l * r : l + r;
+          else if (node.type === 'sub') res = slice ? l - l * r : l - r;
           else if (node.type === 'mul') res = l * r;
           else {
             if (r === 0) throw { code: 'div0' };
@@ -430,7 +696,7 @@
 
           /* a climbed operand shows its value, so 2 + 3 * 4 reads "2 + 12 = 14" */
           note(operandText(node.l, l) + ' ' + sym(node.type === 'add' ? '+' : node.type === 'sub' ? '-' : node.type === 'mul' ? '*' : '/')
-            + ' ' + operandText(node.r, r) + ' = ' + format(res),
+            + ' ' + operandText(node.r, r) + ' = ' + rung(res, exactOf(node, xo), o),
             NOTE[node.implicit ? 'implicit' : node.type]);
           return res;
         }
@@ -441,7 +707,18 @@
     }
 
     var value = walk(ast);
-    return { value: value, text: format(value), steps: state.steps, mode: mode };
+    var x = exactOf(ast, xo);
+
+    return {
+      value: value,
+      text: format(value),
+      /* empty in decimal mode, so the controller can ask for whichever face
+         the dial asked for without knowing anything about exact values */
+      exact: x && o.exact ? exactText(x) : '',
+      x: x,
+      steps: state.steps,
+      mode: mode
+    };
   }
 
   /* public surface */
@@ -460,6 +737,7 @@
     LINES: LINES,
     FUNCS: FUNCS,
     CONSTS: CONSTS,
+    EXACT_MAX_DEN: MAX_DEN,
     normalizeInput: normalizeInput,
     tokenize: tokenize,
     parse: parse,

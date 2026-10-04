@@ -230,8 +230,26 @@
 
   /* ---- layer 1 — the resolving grid ---- */
 
+  /* Every grid line is one segment with one index. Six passes over the same
+     idea — vertical and horizontal, solid and dashed, every fifth — collapse
+     into one stroke call, so the one rule about them lives in one place. */
+  function strokeLines(lines, alpha, dashed) {
+    if (!lines.length) return;
+    ctx.beginPath();
+    for (var i = 0; i < lines.length; i++) {
+      ctx.moveTo(lines[i][0], lines[i][1]);
+      ctx.lineTo(lines[i][2], lines[i][3]);
+    }
+    if (dashed) ctx.setLineDash(GRID_DASH);
+    ctx.strokeStyle = 'rgba(' + color.ink + ',' + alpha + ')';
+    ctx.stroke();
+    if (dashed) ctx.setLineDash([]);
+  }
+
+  function everyFifth(n) { return ((n % 5) + 5) % 5 === 0; }
+
   function drawGrid(scrollY, frontierY) {
-    var i, x, y, index;
+    var i, x, y, index, plain, bold, ahead;
 
     ctx.fillStyle = color.paper;
     ctx.fillRect(0, 0, W, H);
@@ -242,73 +260,32 @@
        solid where the ink has been, dashed where it has not */
     var vAnchor = W / 2 - Math.round(W / 2 / CELL) * CELL;
 
-    ctx.beginPath();
-    for (i = 0; vAnchor + i * CELL < W + CELL; i++) {
-      if (((i % 5) + 5) % 5 === 0) continue;
-      x = Math.round(vAnchor + i * CELL) + 0.5;
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, frontierY);
-    }
-    ctx.strokeStyle = 'rgba(' + color.ink + ',' + GRID_BEHIND + ')';
-    ctx.stroke();
-
-    ctx.beginPath();
-    for (i = 0; vAnchor + i * CELL < W + CELL; i++) {
-      if (((i % 5) + 5) % 5 !== 0) continue;
-      x = Math.round(vAnchor + i * CELL) + 0.5;
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, frontierY);
-    }
-    ctx.strokeStyle = 'rgba(' + color.ink + ',' + GRID_BEHIND_5 + ')';
-    ctx.stroke();
-
-    ctx.setLineDash(GRID_DASH);
-    ctx.beginPath();
+    plain = []; bold = []; ahead = [];
     for (i = 0; vAnchor + i * CELL < W + CELL; i++) {
       x = Math.round(vAnchor + i * CELL) + 0.5;
-      ctx.moveTo(x, frontierY);
-      ctx.lineTo(x, H);
+      if (everyFifth(i)) bold.push([x, 0, x, frontierY]);
+      else plain.push([x, 0, x, frontierY]);
+      ahead.push([x, frontierY, x, H]);
     }
-    ctx.strokeStyle = 'rgba(' + color.ink + ',' + GRID_AHEAD + ')';
-    ctx.stroke();
-    ctx.setLineDash([]);
+    strokeLines(plain, GRID_BEHIND);
+    strokeLines(bold, GRID_BEHIND_5);
+    strokeLines(ahead, GRID_AHEAD, true);
 
     /* horizontal lines travel with the page, and each one is either behind
        the frontier or ahead of it */
     var off = scrollY % CELL;
     var base = Math.floor(scrollY / CELL);
 
-    ctx.beginPath();
+    plain = []; bold = []; ahead = [];
     for (i = 0, index = base; i * CELL - off <= H; i++, index++) {
       y = Math.round(i * CELL - off) + 0.5;
-      if (y > frontierY || ((index % 5) + 5) % 5 === 0) continue;
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
+      if (y > frontierY) ahead.push([0, y, W, y]);
+      else if (everyFifth(index)) bold.push([0, y, W, y]);
+      else plain.push([0, y, W, y]);
     }
-    ctx.strokeStyle = 'rgba(' + color.ink + ',' + GRID_BEHIND + ')';
-    ctx.stroke();
-
-    ctx.beginPath();
-    for (i = 0, index = base; i * CELL - off <= H; i++, index++) {
-      y = Math.round(i * CELL - off) + 0.5;
-      if (y > frontierY || ((index % 5) + 5) % 5 !== 0) continue;
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
-    }
-    ctx.strokeStyle = 'rgba(' + color.ink + ',' + GRID_BEHIND_5 + ')';
-    ctx.stroke();
-
-    ctx.setLineDash(GRID_DASH);
-    ctx.beginPath();
-    for (i = 0; i * CELL - off <= H; i++) {
-      y = Math.round(i * CELL - off) + 0.5;
-      if (y <= frontierY) continue;
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
-    }
-    ctx.strokeStyle = 'rgba(' + color.ink + ',' + GRID_AHEAD + ')';
-    ctx.stroke();
-    ctx.setLineDash([]);
+    strokeLines(plain, GRID_BEHIND);
+    strokeLines(bold, GRID_BEHIND_5);
+    strokeLines(ahead, GRID_AHEAD, true);
   }
 
   /* ---- layers 2 and 7 — the inked curve and the pencil sketch ---- */

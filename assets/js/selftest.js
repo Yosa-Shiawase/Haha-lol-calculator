@@ -75,6 +75,11 @@
     if (!b) throw new Error('no key has ' + attr);
     b.click();
   }
+  function clickEq(attr, value) {
+    var b = $('[' + attr + '="' + value + '"]');
+    if (!b) throw new Error('no key has ' + attr + '="' + value + '"');
+    b.click();
+  }
   function clear() { clickAttr('data-clear'); }
   function solve() { clickAttr('data-solve'); }
   function pressKey(key) {
@@ -90,8 +95,36 @@
       if (ch === '*') clickIns('×');
       else if (ch === '/') clickIns('÷');
       else if (ch === '-') clickIns('−');
+      else if (ch === '%') clickEq('data-append', '%');
       else clickIns(ch);
     }
+  }
+
+  /* 2d: press a run of real keys, each one named by the token it inserts */
+  function keys() {
+    for (var i = 0; i < arguments.length; i++) {
+      var token = arguments[i];
+      if ($('[data-ins="' + token + '"]')) clickIns(token);
+      else if ($('[data-append="' + token + '"]')) clickEq('data-append', token);
+      else if (/^[0-9.]+$/.test(token)) { for (var d = 0; d < token.length; d++) clickIns(token[d]); }
+      else throw new Error('no key means ' + JSON.stringify(token));
+    }
+  }
+
+  /* and solve it, waiting for the count-up to land before reading the answer */
+  function solveKeys() {
+    clear();
+    keys.apply(null, arguments);
+    solve();
+    return settle().then(function () { return shown(); });
+  }
+
+  function layer() { return $('#calc').getAttribute('data-2nd'); }
+  function memLit() { var m = $('[data-mem]'); return m && !m.hidden; }
+  function layerFlag() { return $('[data-layer]').textContent; }
+  function labelOf(attr, token) {
+    var b = $('[' + attr + '="' + token + '"]');
+    return b ? b.textContent : null;
   }
 
   /* after "=" the answer counts up; wait for it to land */
@@ -335,7 +368,450 @@
     });
   }
 
-  /* ---- 5. UI invariants -------------------------------------------------- */
+  /* ---- 5. the 2nd layer ---------------------------------------------------
+     A layer that only changed the label would be a lie: every key here is
+     checked twice, once for the label it wears and once for the token it
+     actually types. */
+
+  function secondLayer() {
+    var g = '2nd layer';
+
+    check(g, 'the pad starts on the first layer', layer(), 'false');
+    check(g, 'the display says so', layerFlag(), '1st');
+    check(g, 'the 2nd key is not pressed', $('[data-2nd-key]').getAttribute('aria-pressed'), 'false');
+    check(g, 'sin wears its first label', labelOf('data-ins', 'sin('), 'sin');
+
+    var altKeys = $$('.key--alt');
+
+    /* every key that claims a second meaning really has one, in the markup */
+    altKeys.forEach(function (btn) {
+      var attr = btn.getAttribute('data-ins') ? 'data-ins' : 'data-append';
+      check(g, 'a key carries both meanings', !!btn.getAttribute(attr + '-2nd'), true);
+    });
+
+    clickAttr('data-2nd-key');
+    check(g, '2nd switches the pad', layer(), 'true');
+    check(g, 'the display says so', layerFlag(), '2nd');
+    check(g, 'the 2nd key is pressed', $('[data-2nd-key]').getAttribute('aria-pressed'), 'true');
+
+    altKeys.forEach(function (btn) {
+      var name = btn.getAttribute('data-l1');
+      var attr = btn.getAttribute('data-ins') ? 'data-ins' : 'data-append';
+      check(g, name + ' wears its second label', btn.textContent, btn.getAttribute('data-l2'));
+
+      clear();
+      btn.click();
+      check(g, name + ' types its second meaning', exprVal(), btn.getAttribute(attr + '-2nd'));
+
+      clear();
+      btn.click();
+      check(g, name + ' is idempotent on the second layer', exprVal(), btn.getAttribute(attr + '-2nd'));
+    });
+
+    /* the pressed state has to be seen, not merely declared in the markup.
+       The keys carry a background transition, so a colour is only ever read
+       after that transition has landed — reading it on the tick that set the
+       attribute would only prove the colour it was leaving. */
+    var probe = $('.key--alt');
+    var plain = $('[data-ins="7"]');
+
+    /* the layer is a state, so it survives the keypad being turned away */
+    clickAttr('data-pad-toggle');
+    clickAttr('data-pad-toggle');
+    check(g, 'the layer survives a page flip', layer(), 'true');
+
+    clickAttr('data-2nd-key');
+    return tick(260).then(function () {
+      var rest = getComputedStyle(probe).backgroundColor;
+      var ordinary = getComputedStyle(plain).backgroundColor;
+
+      check(g, '2nd switches back', layer(), 'false');
+      check(g, 'the display says so', layerFlag(), '1st');
+      check(g, 'the 2nd key is released', $('[data-2nd-key]').getAttribute('aria-pressed'), 'false');
+
+      altKeys.forEach(function (btn) {
+        var name = btn.getAttribute('data-l1');
+        var attr = btn.getAttribute('data-ins') ? 'data-ins' : 'data-append';
+        check(g, name + ' wears its first label again', btn.textContent, name);
+        clear();
+        btn.click();
+        check(g, name + ' types its first meaning again', exprVal(), btn.getAttribute(attr));
+      });
+
+      clickAttr('data-2nd-key');
+      return tick(260).then(function () {
+        var held = getComputedStyle(probe).backgroundColor;
+        check(g, 'a shifted key is a different colour when held', held !== rest, true);
+        check(g, 'and an ordinary key never takes that colour', ordinary !== held, true);
+        check(g, 'the display tag lights up with them',
+          getComputedStyle($('[data-layer]')).backgroundColor === held, true);
+        clickAttr('data-2nd-key');
+      });
+    });
+  }
+
+  /* ---- 6. quick operations ---------------------------------------------- */
+
+  function quickOps() {
+    var g = 'quick ops';
+
+    return solveKeys('4', '^-1').then(function (got) {
+      check(g, '1/x of 4', got, '0.25');
+      return solveKeys('7', '^2');
+    }).then(function (got) {
+      check(g, 'x² of 7', got, '49');
+
+      clear();
+      clickAttr('data-2nd-key');
+      keys('7');
+      clickEq('data-append', '^2');
+      check(g, 'the 2nd layer squares into a cube', exprVal(), '7^3');
+      solve();
+      return settle().then(function () {
+        check(g, 'x³ of 7', shown(), '343');
+        clickAttr('data-2nd-key');
+        return solveKeys('200', '+', '10', '%');
+      });
+    }).then(function (got) {
+      check(g, '200 + 10 %', got, '220');
+      return solveKeys('200', '−', '10', '%');
+    }).then(function (got) {
+      check(g, '200 − 10 %', got, '180');
+      return solveKeys('10', '%', '×', '2');
+    }).then(function (got) {
+      check(g, '10 % × 2 is a plain hundredth', got, '0.2');
+      return solveKeys('5', '×10^', '3');
+    }).then(function (got) {
+      check(g, '5 ×10^ 3', got, '5000');
+      return solveKeys('1.5', '×10^', '−', '4');
+    }).then(function (got) {
+      check(g, '1.5 ×10^ −4 is scientific entry', got, '0.00015');
+
+      /* after "=" these are operators, so they continue from the answer */
+      clear();
+      keys('8');
+      solve();
+      return settle().then(function () {
+        clickEq('data-ins', '×10^');
+        check(g, '×10^ continues from the answer', exprVal(), 'Ans×10^');
+        clear();
+        keys('8');
+        solve();
+        return settle().then(function () {
+          clickEq('data-append', '%');
+          check(g, '% continues from the answer', exprVal(), 'Ans%');
+          return solveKeys('50', '×', '2', '%');
+        });
+      });
+    }).then(function (got) {
+      check(g, '50 × 2 % is a plain hundredth', got, '1');
+      return solveKeys('9', '−', '5', '%');
+    }).then(function (got) {
+      check(g, '9 − 5 % is a slice of the 9', got, '8.55');
+      return solveKeys('9', '+', '5', '%');
+    }).then(function (got) {
+      check(g, '9 + 5 % is a slice of the 9', got, '9.45');
+    });
+  }
+
+  /* ---- 7. memory --------------------------------------------------------- */
+
+  function memory() {
+    var g = 'memory';
+
+    /* MR is a decision, like ANS: refused means the box did not change */
+    function refusedRecall() {
+      clear();
+      keys('1');
+      clickAttr('data-mem-rec');
+      return exprVal() === '1';
+    }
+
+    function recallNow() { clear(); clickAttr('data-mem-rec'); return exprVal(); }
+
+    check(g, 'memory starts empty', memLit(), false);
+
+    clear();
+    keys('1');
+    clickAttr('data-mem-rec');
+    check(g, 'MR on an empty memory types nothing', exprVal(), '1');
+
+    return solveKeys('6', '×', '7').then(function (got) {
+      check(g, '6 × 7 first', got, '42');
+      clickAttr('data-mem-add');
+      check(g, 'M+ keeps the answer', memLit(), true);
+      check(g, 'M+ leaves the expression alone', exprVal(), '6×7');
+
+      check(g, 'MR into an empty input recalls the number', recallNow(), '42');
+      solve();
+      return settle().then(function () {
+        check(g, 'the recalled number solves', shown(), '42');
+
+        check(g, 'MR after a digit is refused', refusedRecall(), true);
+
+        clear();
+        keys('8', '+');
+        clickAttr('data-mem-rec');
+        check(g, 'MR after an operator is allowed', exprVal(), '8+42');
+        solve();
+        return settle().then(function () {
+          check(g, 'and it adds up', shown(), '50');
+          return solveKeys('5', '−', '0', '−', '4');
+        });
+      });
+    }).then(function (got) {
+      check(g, '5 − 0 − 4 first', got, '1');
+      clickAttr('data-mem-sub');
+      check(g, 'M− takes the answer back out', memLit(), true);
+      check(g, 'MR gives the remainder', recallNow(), '41');
+      return solveKeys('20', '×', '1');
+    }).then(function () {
+      clickAttr('data-mem-add');
+      clickAttr('data-mem-add');
+      check(g, 'M+ twice keeps both answers', recallNow(), '81');
+
+      check(g, 'the memory keys show they are holding something',
+        $('[data-mem-rec]').classList.contains('is-holding'), true);
+
+      clear();
+      clickAttr('data-mem-clr');
+      check(g, 'MC empties it', memLit(), false);
+      check(g, 'MC releases the keys',
+        $('[data-mem-rec]').classList.contains('is-holding'), false);
+      check(g, 'and nothing was typed on the way', exprVal(), '');
+
+      /* MC is an action, not a keystroke: on an empty memory it says the
+         press was ignored rather than quietly doing nothing */
+      clear();
+      keys('7', '+');
+      clickAttr('data-mem-clr');
+      check(g, 'MC on an empty memory flashes the edge',
+        $('.display').classList.contains('is-refuse'), true);
+      check(g, 'MC on an empty memory leaves the box alone', exprVal(), '7+');
+
+      check(g, 'MR after a digit is refused', refusedRecall(), true);
+      return solveKeys('3', '+', '4');
+    }).then(function () {
+      clickAttr('data-mem-add');
+      check(g, '3 + 4 is in memory', memLit(), true);
+      return solveKeys('9', '×', '9');
+    }).then(function () {
+      clickAttr('data-mem-rec');
+      check(g, 'MR after "=" replaces the finished expression', exprVal(), '7');
+
+      /* Ans is kept across a clear, and so is the answer M+ works from */
+      clickAttr('data-mem-clr');
+      clear();
+      clickAttr('data-mem-add');
+      check(g, 'M+ after a clear still keeps the last answer', memLit(), true);
+      clickAttr('data-mem-clr');
+    });
+  }
+
+  /* ---- 8. the display dials ---------------------------------------------- */
+
+  function dials() {
+    var g = 'display modes';
+
+    check(g, 'the settings start closed', $('[data-settings]').getAttribute('data-open'), 'false');
+    clickAttr('data-settings-toggle');
+    check(g, 'the disclosure opens', $('[data-settings]').getAttribute('data-open'), 'true');
+    check(g, 'and says it is open', $('[data-settings-toggle]').getAttribute('aria-expanded'), 'true');
+
+    return solveKeys('2', '÷', '3').then(function (got) {
+      check(g, 'auto decimals by default', got, '0.666666667');
+
+      clickEq('data-fix', '3');
+      check(g, 'FIX 3 rounds to three places', shown(), '0.667');
+      check(g, 'FIX 3 is the pressed one', $('[data-fix="3"]').getAttribute('aria-pressed'), 'true');
+      check(g, 'auto is released', $('[data-fix="auto"]').getAttribute('aria-pressed'), 'false');
+
+      clear();
+      keys('5', '÷', '2');
+      check(g, 'FIX 3 applies before a solve too', shown(), '2.500');
+      return solveKeys('5', '÷', '2');
+    }).then(function (got) {
+      check(g, 'FIX 3 solves to three places', got, '2.500');
+
+      /* the tape records what the dial said at the moment of the solve */
+      var tape = $('#tape .tape__val');
+      check(g, 'the tape uses the same dial', tape ? tape.textContent : '', '= 2.500');
+
+      clickEq('data-fix', '0');
+      check(g, 'FIX 0 gives a whole number', shown(), '3');
+
+      clickEq('data-fix', '9');
+      check(g, 'FIX 9 gives nine', shown(), '2.500000000');
+
+      /* a number plain notation cannot carry still falls back, FIX or not */
+      return solveKeys('1', '×10^', '21');
+    }).then(function (got) {
+      check(g, 'too big to spell stays in powers of ten', got, '1e+21');
+
+      clickEq('data-fix', 'auto');
+      clickEq('data-sci', 'on');
+      return solveKeys('2', '÷', '3');
+    }).then(function (got) {
+      check(g, 'Sci writes every answer as a power of ten', got, '6.666667e-1');
+      check(g, 'Sci is the pressed one', $('[data-sci="on"]').getAttribute('aria-pressed'), 'true');
+
+      clickEq('data-fix', '2');
+      check(g, 'FIX then sets the mantissa digits', shown(), '6.67e-1');
+
+      clickEq('data-sci', 'off');
+      check(g, 'turning Sci off returns to plain', shown(), '0.67');
+      clickEq('data-fix', 'auto');
+      check(g, 'auto returns the house style', shown(), '0.666666667');
+
+      /* nothing here may leave a dial pressed twice over */
+      check(g, 'exactly one decimals dial and one Sci dial are pressed',
+        $$('[data-fix][aria-pressed="true"]').length +
+        $$('[data-sci][aria-pressed="true"]').length, 2);
+
+      clickAttr('data-settings-toggle');
+      check(g, 'the disclosure closes again', $('[data-settings]').getAttribute('data-open'), 'false');
+    });
+  }
+
+  /* ---- 9. the exact table -------------------------------------------------
+     The display is only ever allowed to say "exact" about a value the engine
+     could prove. Every row below is one the layer either proves or refuses,
+     and a refused row is as important as a proved one: an approximation that
+     dressed itself up as an exact answer would be the whole failure. */
+
+  var EXACT_ROWS = [
+    /* rationals, reduced */
+    ['2/3 + 1/6', 'deg', '5/6'],
+    ['1/2 + 1/3', 'deg', '5/6'],
+    ['5/4 + 3/4', 'deg', '2'],
+    ['1/3', 'deg', '1/3'],
+    ['7/2', 'deg', '7/2'],
+    /* a literal is the fraction it was written as */
+    ['0.1', 'deg', '1/10'],
+    ['1.5', 'deg', '3/2'],
+    ['−0.25', 'deg', '−1/4'],
+    /* roots, simplified and combined */
+    ['√(12)', 'deg', '2√3'],
+    ['√(8)', 'deg', '2√2'],
+    ['√(18)', 'deg', '3√2'],
+    ['√(27)', 'deg', '3√3'],
+    ['√(2)', 'deg', '√2'],
+    ['√(1/2)', 'deg', '√2/2'],
+    ['√(1/3)', 'deg', '√3/3'],
+    ['√2 × √3', 'deg', '√6'],
+    ['√2 ÷ √3', 'deg', '√6/3'],
+    ['√2 × √2', 'deg', '2'],
+    /* the standard angles */
+    ['sin(45)', 'deg', '√2/2'],
+    ['cos(30)', 'deg', '√3/2'],
+    ['tan(60)', 'deg', '√3'],
+    ['cos(60)', 'deg', '1/2'],
+    ['sin(90)', 'deg', '1'],
+    ['sin(30)', 'deg', '1/2'],
+    /* fifteen degrees is a sum of two roots, so it stays decimal */
+    ['sin(15)', 'deg', ''],
+    ['sin(45)', 'rad', ''],
+    ['sin(30)', 'rad', ''],
+    /* structural pi and e */
+    ['2π', 'deg', '2π'],
+    ['3π/4', 'deg', '3π/4'],
+    ['π/6', 'deg', 'π/6'],
+    ['2e', 'deg', '2e'],
+    ['ln(e)', 'deg', '1'],
+    ['log(10)', 'deg', '1'],
+    ['ln(1)', 'deg', '0'],
+    /* only the first power of pi is inside the bounds */
+    ['π^2', 'deg', ''],
+    /* a cube root is only exact when it lands */
+    ['cbrt(27)', 'deg', '3'],
+    ['cbrt(8)', 'deg', '2'],
+    ['cbrt(2)', 'deg', ''],
+    /* powers and factorials stay inside the family */
+    ['2^10', 'deg', '1024'],
+    ['(2/3)^2', 'deg', '4/9'],
+    ['(2/3)^-2', 'deg', '9/4'],
+    ['(2/3)^0', 'deg', '1'],
+    ['5!', 'deg', '120'],
+    ['2 + 3 × 4', 'deg', '14'],
+    /* the denominator bound, from both sides */
+    ['1/10000', 'deg', '1/10000'],
+    ['1/10001', 'deg', ''],
+    ['1/3000', 'deg', '1/3000'],
+    ['1/30000', 'deg', ''],
+    ['0.333333333 + 0.333333333', 'deg', '']
+  ];
+
+  function exactDisplay() {
+    var g = 'exact display';
+
+    check(g, 'the denominator bound is 10000', Engine.EXACT_MAX_DEN, 10000);
+
+    EXACT_ROWS.forEach(function (row) {
+      var got = '';
+      try {
+        got = Engine.solve(row[0], { mode: row[1], exact: true, ans: 0 }).exact;
+      } catch (e) {
+        got = 'threw ' + (e.code || e.message);
+      }
+      check(g, row[0] + ' [' + row[1] + ']', got, row[2]);
+    });
+
+    /* nothing on the table may be a decimal wearing an exact label */
+    var leaky = EXACT_ROWS.filter(function (row) {
+      var got = Engine.solve(row[0], { mode: row[1], exact: true, ans: 0 }).exact;
+      return /[.]/.test(got) || /e[+-]/i.test(got);
+    });
+    check(g, 'no exact answer carries a decimal point or an exponent',
+      JSON.stringify(leaky.map(function (r) { return r[0]; })), '[]');
+
+    /* and decimal mode must be untouched by any of it */
+    check(g, 'decimal mode still shows the decimal',
+      Engine.solve('2/3 + 1/6', { mode: 'deg' }).text, '0.833333333');
+    check(g, 'decimal mode has no exact face',
+      Engine.solve('2/3 + 1/6', { mode: 'deg' }).exact, '');
+    check(g, 'decimal mode leaves the steps alone',
+      JSON.stringify(Engine.solve('2 + 3 × 4', { mode: 'deg' }).steps.map(function (s) { return s.m; })),
+      JSON.stringify(['3 × 4 = 12', '2 + 12 = 14']));
+    check(g, 'an exact step carries its decimal too',
+      Engine.solve('2/3 + 1/6', { mode: 'deg', exact: true }).steps[2].m,
+      '0.666666667 + 0.166666667 = 5/6 = 0.833333333');
+
+    /* the toggle itself, through the real display */
+    check(g, 'Exact starts off', $('[data-exact="on"]').getAttribute('aria-pressed'), 'false');
+
+    return solveKeys('2', '÷', '3', '+', '1', '÷', '6').then(function (got) {
+      check(g, 'decimal display first', got, '0.833333333');
+
+      clickEq('data-exact', 'on');
+      check(g, 'Exact is the pressed one', $('[data-exact="on"]').getAttribute('aria-pressed'), 'true');
+      check(g, 'the live preview is exact', shown(), '5/6');
+
+      solve();
+      return settle().then(function () {
+        check(g, 'the solved display is exact', shown(), '5/6');
+        var tape = $('#tape .tape__val');
+        check(g, 'the tape is exact too', tape ? tape.textContent : '', '= 5/6');
+        check(g, 'the steps say both', steps().indexOf('0.666666667 + 0.166666667 = 5/6 = 0.833333333') >= 0, true);
+
+        /* FIX cannot round an exact answer into something it is not */
+        clickEq('data-fix', '3');
+        check(g, 'FIX does not touch an exact answer', shown(), '5/6');
+        clickEq('data-fix', 'auto');
+
+        clickEq('data-exact', 'off');
+        check(g, 'back to decimal', shown(), '0.833333333');
+
+        /* a refused answer stays refused in both modes */
+        clickEq('data-exact', 'on');
+        return solveKeys('1', '÷', '30000');
+      });
+    }).then(function (got) {
+      check(g, 'past the bound it is decimal again', got, '0.000033333');
+      clickEq('data-exact', 'off');
+    });
+  }
+
+  /* ---- 10. UI invariants ------------------------------------------------- */
 
   function invariants() {
     var g = 'ui';
@@ -439,6 +915,11 @@
       .then(transcript)
       .then(stateMachine)
       .then(keyboard)
+      .then(secondLayer)
+      .then(quickOps)
+      .then(memory)
+      .then(dials)
+      .then(exactDisplay)
       .then(invariants)
       .then(function () {
         check('console', 'zero console errors across the whole run',

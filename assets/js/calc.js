@@ -22,8 +22,27 @@
   var padToggle = document.querySelector('[data-pad-toggle]');
   var padLabel = document.querySelector('[data-pad-label]');
   var anglesOut = document.querySelector('[data-angles]');
+  var layerOut = document.querySelector('[data-layer]');
+  var memOut = document.querySelector('[data-mem]');
+  var secondBtn = document.querySelector('[data-2nd-key]');
+  var settingsPanel = document.querySelector('[data-settings]');
+  var settingsToggle = document.querySelector('[data-settings-toggle]');
+  var dialNote = document.querySelector('[data-settings-note]');
 
-  var state = { mode: 'deg', ans: 0, last: 0, result: false, answered: false };
+  var state = {
+    mode: 'deg',
+    ans: 0,
+    last: 0,
+    result: false,
+    answered: false,
+    second: false,
+    mem: 0,
+    fix: null,
+    sci: false,
+    exact: false,
+    ansX: null,
+    shown: null
+  };
   var TAPE_MAX = 14;
 
   var SHORT = {
@@ -38,6 +57,9 @@
 
   var all = function (sel) { return [].slice.call(document.querySelectorAll(sel)); };
 
+  /* the four memory keys, collected once */
+  var MEM_KEYS = all('[data-mem-add],[data-mem-sub],[data-mem-rec],[data-mem-clr]');
+
   /* --- result state -------------------------------------------------------
      After "=" lands the input still shows the finished expression, so what the
      next press means has to be decided. It is decided once, here, and every
@@ -49,10 +71,154 @@
 
   var CONTINUES = {
     '+': 1, '\u2212': 1, '\u00d7': 1, '\u00f7': 1,
-    '^': 1, '!': 1, '^2': 1, '^-1': 1
+    '^': 1, '!': 1, '^2': 1, '^-1': 1, '%': 1,
+    '\u00d7e^': 1, '\u00d710^': 1
   };
 
   function kindOf(token) { return CONTINUES[token] ? 'operator' : 'operand'; }
+
+  /* --- the display dials --------------------------------------------------
+     Two independent switches under Kitsu, both off to begin with, so the
+     calculator looks and reads exactly as it did before they existed:
+       fix  0..9    that many decimal places, rounded
+       sci  true    every answer in powers of ten; fix then sets how many
+                    digits sit in the mantissa                           */
+
+  function fmt(v) { return Engine.format(v, { fix: state.fix, sci: state.sci }); }
+
+  /* The answer in whichever face the dials asked for. The engine hands back
+     both, and the exact face is an empty string whenever there isn't one, so
+     a decimal is never quietly replaced by something that only looks exact. */
+  function face(res) { return res.exact ? res.exact : fmt(res.value); }
+
+  var NOTE_DIAL = {
+    plain: 'Plain numbers. Anything too big or too small to spell comes back as a power of ten.',
+    fix: 'Fixed decimal places. Anything too big or too small to spell still comes back as a power of ten.',
+    sci: 'Every answer as a power of ten. The decimals dial sets how many digits sit in the mantissa.'
+  };
+
+  var NOTE_EXACT = 'Exact answers where the exact one fits: fractions, roots, and a rational times ' +
+    '\u03c0 or e. Anything wider stays decimal, and every exact step carries its decimal too.';
+
+  function noteDial() {
+    if (!dialNote) return;
+    dialNote.textContent = state.exact ? NOTE_EXACT
+      : NOTE_DIAL[state.sci ? 'sci' : (state.fix === null ? 'plain' : 'fix')];
+  }
+
+  function markGroup(sel, isOn) {
+    all(sel).forEach(function (b) {
+      var on = isOn(b);
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function setFix(value) {
+    state.fix = value;
+    markGroup('[data-fix]', function (b) {
+      return b.getAttribute('data-fix') === (value === null ? 'auto' : String(value));
+    });
+    noteDial();
+    preview();
+  }
+
+  function setSci(on) {
+    state.sci = !!on;
+    markGroup('[data-sci]', function (b) { return (b.getAttribute('data-sci') === 'on') === state.sci; });
+    noteDial();
+    preview();
+  }
+
+  function setExact(on) {
+    state.exact = !!on;
+    markGroup('[data-exact]', function (b) { return (b.getAttribute('data-exact') === 'on') === state.exact; });
+    noteDial();
+    preview();
+  }
+
+  /* --- the 2nd layer ------------------------------------------------------
+     One flag decides two things at once: which label a function key wears and
+     which token it types. Both are read from the markup beside the key, so a
+     key cannot show one meaning and type another. */
+
+  function tokenFor(btn, attr) {
+    var alt = btn.getAttribute(attr + '-2nd');
+    return alt !== null && state.second ? alt : btn.getAttribute(attr);
+  }
+
+  function setSecond(on) {
+    state.second = !!on;
+    padRoot.setAttribute('data-2nd', state.second ? 'true' : 'false');
+    if (secondBtn) secondBtn.setAttribute('aria-pressed', state.second ? 'true' : 'false');
+    if (layerOut) layerOut.textContent = state.second ? '2nd' : '1st';
+    all('.key--alt').forEach(function (btn) {
+      var label = state.second ? btn.getAttribute('data-l2') : btn.getAttribute('data-l1');
+      if (label) btn.textContent = label;
+    });
+  }
+
+  /* --- memory -------------------------------------------------------------
+     One number, kept for the length of the visit. M+ and M- act on the last
+     answer; MR recalls it under exactly the rule Ans follows, so a stored
+     value can never be welded onto the number already in the box. */
+
+  function memoryValue() {
+    if (state.answered) return state.ans;
+    return typeof state.shown === 'number' && isFinite(state.shown) ? state.shown : null;
+  }
+
+  function drawMemory() {
+    if (memOut) memOut.hidden = state.mem === 0;
+    MEM_KEYS.forEach(function (b) { b.classList.toggle('is-holding', state.mem !== 0); });
+  }
+
+  function remember(sign) {
+    var v = memoryValue();
+    if (v === null) {
+      refuse();
+      Kitsu.sayTo('dock', 'Solve something first, then I can keep it for you.', 'oops');
+      return;
+    }
+    var next = state.mem + sign * v;
+    if (!isFinite(next)) {
+      refuse();
+      Kitsu.sayTo('dock', 'That would leave me holding a number too big to keep.', 'oops');
+      return;
+    }
+    state.mem = Engine.tidy(next);
+    drawMemory();
+  }
+
+  function memRecall() {
+    if (state.mem === 0) {
+      refuse();
+      Kitsu.sayTo('dock', 'My memory is empty \u2014 M+ puts something in it first.', 'oops');
+      return;
+    }
+    /* String(number) is the shortest form that reads back as the same number,
+       which is what a recalled operand has to be */
+    var token = String(state.mem);
+
+    /* after "=" a finished expression is sitting there, and a recalled number
+       replaces it rather than landing on the end of it */
+    if (state.result) {
+      state.result = false;
+      put(token);
+      preview();
+      return;
+    }
+    if (!ansFits()) { refuse(); return; }
+    insert(token);
+  }
+
+  function memClear() {
+    if (state.mem === 0) { refuse(); return; }
+    state.mem = 0;
+    state.result = false;
+    drawMemory();
+    preview();
+  }
 
   /* every single press ends here: result state first, then the insert */
   function press(text, kind) {
@@ -193,15 +359,22 @@
     preview();
   }
 
+  /* everything the engine is told about this visit, in one place */
+  function solveOpts() {
+    return { mode: state.mode, ans: state.ans, ansX: state.ansX, exact: state.exact };
+  }
+
   function preview() {
     var raw = expr.value.trim();
 
-    if (!raw) { say('Kitsu is waiting'); setThinking(false); return; }
+    if (!raw) { state.shown = null; say('Kitsu is waiting'); setThinking(false); return; }
 
     try {
-      var r = Engine.solve(raw, { mode: state.mode, ans: state.ans });
-      say(r.text, 'is-answer');
+      var r = Engine.solve(raw, solveOpts());
+      state.shown = r.value;
+      say(face(r), 'is-answer');
     } catch (e) {
+      state.shown = null;
       if (Engine.isError(e)) {
         say(raw.length > 1 ? SHORT[e.code] : '', 'is-error');
       } else {
@@ -287,7 +460,7 @@
   }
 
   /* the answer counts up, then the display flashes the accent once */
-  function burst(to) {
+  function burst(to, exactFace) {
     var from = (RM.matches || !isFinite(state.last)) ? to : state.last;
     display.classList.remove('is-bursting');
 
@@ -296,8 +469,10 @@
       window.setTimeout(function () { display.classList.remove('is-bursting'); }, 620);
     }
 
-    if (RM.matches || from === to || !isFinite(from)) {
-      say(Engine.format(to), 'is-answer');
+    /* counting up to 5/6 would mean counting up through a lie, so an exact
+       answer lands whole */
+    if (RM.matches || from === to || !isFinite(from) || exactFace) {
+      say(exactFace || fmt(to), 'is-answer');
       flash();
       return;
     }
@@ -306,7 +481,7 @@
     (function tick(now) {
       var p = Math.min(1, (now - t0) / 600);
       var eased = 1 - Math.pow(1 - p, 3);
-      try { say(Engine.format(from + (to - from) * eased), 'is-answer'); } catch (err) { say(Engine.format(to), 'is-answer'); }
+      try { say(fmt(from + (to - from) * eased), 'is-answer'); } catch (err) { say(fmt(to), 'is-answer'); }
       if (p < 1) requestAnimationFrame(tick);
       else flash();
     })(t0);
@@ -324,7 +499,7 @@
 
     var res;
     try {
-      res = Engine.solve(raw, { mode: state.mode, ans: state.ans });
+      res = Engine.solve(raw, solveOpts());
     } catch (e) {
       var code = Engine.isError(e) ? e.code : 'unknown';
       say(SHORT[code], 'is-error');
@@ -335,14 +510,15 @@
 
     state.ans = res.value;
     state.last = res.value;
+    state.ansX = res.x || null;
     state.answered = true;
     /* the input keeps the solved expression so it can be edited and re-run;
        from here the next press either continues from the answer or starts over */
     state.result = true;
 
     drawSteps(res.steps);
-    addTape(raw, res.text);
-    burst(res.value);
+    addTape(raw, face(res));
+    burst(res.value, res.exact);
     Kitsu.sayTo('dock', 'Solved — and I showed my work.', 'happy');
 
     if (window.innerWidth > 720 && drawer.getAttribute('data-open') !== 'true') {
@@ -361,7 +537,7 @@
   all('[data-ins]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       hit(btn);
-      var token = btn.getAttribute('data-ins');
+      var token = tokenFor(btn, 'data-ins');
       press(token, kindOf(token));
     });
   });
@@ -369,7 +545,7 @@
   all('[data-append]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       hit(btn);
-      var token = btn.getAttribute('data-append');
+      var token = tokenFor(btn, 'data-append');
       press(token, kindOf(token));
     });
   });
@@ -386,6 +562,20 @@
 
   var sgn = document.querySelector('[data-sign]');
   if (sgn) sgn.addEventListener('click', function () { hit(sgn); sign(); });
+
+  if (secondBtn) secondBtn.addEventListener('click', function () { hit(secondBtn); setSecond(!state.second); });
+
+  var memAdd = document.querySelector('[data-mem-add]');
+  if (memAdd) memAdd.addEventListener('click', function () { hit(memAdd); remember(1); });
+
+  var memSub = document.querySelector('[data-mem-sub]');
+  if (memSub) memSub.addEventListener('click', function () { hit(memSub); remember(-1); });
+
+  var memRec = document.querySelector('[data-mem-rec]');
+  if (memRec) memRec.addEventListener('click', function () { hit(memRec); memRecall(); });
+
+  var memClr = document.querySelector('[data-mem-clr]');
+  if (memClr) memClr.addEventListener('click', function () { hit(memClr); memClear(); });
 
   var eq = document.querySelector('[data-solve]');
   if (eq) eq.addEventListener('click', function () { hit(eq); solve(); });
@@ -404,6 +594,29 @@
   all('[data-mode]').forEach(function (btn) {
     btn.addEventListener('click', function () { setMode(btn.getAttribute('data-mode')); });
   });
+
+  all('[data-fix]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var v = btn.getAttribute('data-fix');
+      setFix(v === 'auto' ? null : Number(v));
+    });
+  });
+
+  all('[data-sci]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setSci(btn.getAttribute('data-sci') === 'on'); });
+  });
+
+  all('[data-exact]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setExact(btn.getAttribute('data-exact') === 'on'); });
+  });
+
+  if (settingsToggle && settingsPanel) {
+    settingsToggle.addEventListener('click', function () {
+      var open = settingsPanel.getAttribute('data-open') !== 'true';
+      settingsPanel.setAttribute('data-open', open ? 'true' : 'false');
+      settingsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
 
   /* one place decides if the sheet is open, so tab, backdrop and Esc agree */
   function setDrawer(open) {
@@ -442,7 +655,7 @@
 
   var TYPED = {
     '+': '+', '-': '−', '*': '×', '/': '÷', '^': '^',
-    '(': '(', ')': ')', '!': '!', '.': '.'
+    '(': '(', ')': ')', '!': '!', '%': '%', '.': '.'
   };
 
   function onKey(ev) {
@@ -499,7 +712,12 @@
     expr.focus();
   });
 
-  setMode('deg');/* a mouse user gets the caret straight away */
+  setMode('deg');
+  setSecond(false);
+  setFix(null);
+  setSci(false);
+  setExact(false);
+  noteDial();/* a mouse user gets the caret straight away */
   if (window.matchMedia('(pointer: fine)').matches) {
     expr.focus({ preventScroll: true });
   }

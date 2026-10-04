@@ -61,7 +61,59 @@ not `inert`.
    `data-open="true"` **and** the `max-width: 720px` branch is active. Do not
    apply it above 720px — there the drawer is not a modal.
 
-### 3. The Render deploy — DEFERRED BY DESIGN
+### 3. `calc.html` is over the 80KB JavaScript budget — NEEDS A RULING
+
+**Measured 2026-10-04 after phase 2d, per page, real `<script src>` tags only,
+unminified:**
+
+| page | bytes | headroom |
+|---|---|---|
+| `index.html` | 65,996 | +15,924 |
+| `calc.html` | 94,461 | **-12,541** |
+| `about.html` | 32,849 | +49,071 |
+
+Per file on the calculator page:
+
+| file | bytes | |
+|---|---|---|
+| `fox.js` | 9,934 | Kitsu herself — untouchable |
+| `voice.js` | 9,985 | speech in and out — untouchable |
+| `engine.js` | 27,259 | 18,721 before the exact layer, +8,538 for it |
+| `calc.js` | 24,368 | 16,488 before 2d, +7,880 for it |
+| `background.js` | 22,915 | the solving-paper canvas, shared by all three pages |
+
+`assets/js/selftest.js` (36,595 bytes) is QA-only — `calc.html` loads it through
+a `?selftest` query check and a visitor never fetches it — so it is not counted.
+
+**What was already taken, without losing a feature:** `background.js`
+`drawGrid` ran six near-identical stroke loops for one grid. It now builds
+three segment lists per orientation and strokes each once: 440 bytes, and the
+code no longer repeats itself. `.verify/paper.cjs` 51/51 and `.verify/paper-rm.cjs`
+53/53 still pass, pixel comparisons included.
+
+**The trim proposal.** The budget cannot hold phase 2d as specified, and the
+overage is feature cost, not a regression. In order of leverage, and none of
+them touch Kitsu's lines, her steps, or the shipped logic:
+
+1. **Stop loading `background.js` on `calc.html`.** It is 22,915 bytes, or
+   27% of the page. Dropping it puts the calculator at **71,546 bytes**, which
+   is 10,374 under the cap with every 2d feature intact. The cost is visual,
+   not functional: the calculator page loses the graph paper, the ink curve,
+   the margin stamps and the folded corner. This is a design decision about
+   whether the calculator is still part of the paper, and it is not one to take
+   unilaterally.
+2. **Fold the two AST walks into one.** `exact()` in `engine.js` repeats the
+   shape of `evaluate()`'s `walk()`. One walker returning `{v, x}` would
+   remove the duplicated case structure, worth perhaps 1.5–2KB, at the cost of
+   touching every step site — which is where the narration lives.
+3. **Thin the flying ink.** The droplets in `background.js` are roughly 2.5KB
+   of pure decoration that no calculation can observe. It is the least
+   interesting thing on the page and the first thing nobody would miss.
+
+Nothing above reaches 12,541 bytes on its own except option 1, and option 1 is
+a design call. A ruling is needed before any of them is taken.
+
+### 4. The Render deploy — DEFERRED BY DESIGN
 
 - **Ruling:** deferred. The ship pass owns the live URL, the OG tags and the
   final sweep. This is not a defect to be chased before merging.
@@ -110,10 +162,14 @@ both the pre-split and post-split trees and comparing the raw pixel buffers.
 
 ## Not limitations, on purpose
 
-- **`calc.html` does not scroll at 1000px and wider.** The page is 844px tall in
-  an 844px viewport. Deliberate, and documented at `assets/css/calc.css`
-  (*the calculator carries more keys than the reading pages, so it gets a
-  tighter footer and stays inside a laptop viewport*).
+- **`calc.html` scrolls at every width again.** Through phase 2c it fitted an
+  844px viewport exactly. The 2d keypad — the `2nd` key, quick operations and
+  four memory keys — added three rows, and the pad is now 849px of the 868px
+  core at a 1280x900 window. The page scrolls, which is what every other page on
+  the site does and what a 40-key pad has to do. No layout overflows: measured
+  at 1280x900, 1024x900, 768x1000 and 390x780, all 40 keys are at least 34px
+  tall, none overlap, the pad stays inside `.core`, and the display settings
+  panel stays inside the 250px dock.
 - **The steps panel is capped at `max-height: 52vh`.** Measured at 360, 390,
   667, 713 and 844px wide, the open sheet covers 14%–46% of the viewport, so it
   has never needed to scroll internally. If a much longer calculation does
