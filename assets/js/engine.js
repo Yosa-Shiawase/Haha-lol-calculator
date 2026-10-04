@@ -550,8 +550,15 @@ function exact(node, o) {
       return ex({ n: factorial(f.a.n), d: 1 }, 1);
     }
     case 'pow': return exPow(exact(node.l, o), exact(node.r, o));
-    case 'add': return exAdd(exact(node.l, o), exact(node.r, o), 1);
-    case 'sub': return exAdd(exact(node.l, o), exact(node.r, o), -1);
+    /* a percentage beside a + or a − is a slice of the left operand, so the
+       exact walk has to read % the way the decimal walk does */
+    case 'add': case 'sub': {
+      var sign = node.type === 'add' ? 1 : -1;
+      var l = exact(node.l, o);
+      if (node.r.type !== 'pct') return exAdd(l, exact(node.r, o), sign);
+      var p = exact(node.r, o);
+      return l && p ? exAdd(l, exMul(l, p), sign) : null;
+    }
     case 'mul': return exMul(exact(node.l, o), exact(node.r, o));
     case 'div': return exDiv(exact(node.l, o), exact(node.r, o));
     case 'fn': return exactFn(node, o);

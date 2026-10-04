@@ -61,29 +61,38 @@ not `inert`.
    `data-open="true"` **and** the `max-width: 720px` branch is active. Do not
    apply it above 720px — there the drawer is not a modal.
 
-### 3. `calc.html` is over the 80KB JavaScript budget — NEEDS A RULING
+### 3. The JavaScript budget — RULED: JS-ONLY, WHOLE SITE, 81,920 BYTES
 
-**Measured 2026-10-04 after phase 2d, per page, real `<script src>` tags only,
-unminified:**
+- **Ruling (2026-10-04):** the budget is the JavaScript only, unminified, summed
+  across every shipped file on the site, capped at 81,920 bytes. Per-page total
+  weight (HTML+CSS+JS) is a performance statistic and nothing more — never trim
+  product content against it. `test.html` stays, linked from nowhere.
+  `window.HAHA.test()` stays available on the live site.
+- **Measured 2026-10-04 after the exact-by-default change:**
 
-| page | bytes | headroom |
+| shipped file | bytes |
+|---|---|
+| `fox.js` | 9,934 |
+| `voice.js` | 9,985 |
+| `engine.js` | 27,543 |
+| `calc.js` | 24,427 |
+| `background.js` | 22,915 |
+| `story.js` | 5,888 |
+| **total** | **100,692 — 18,772 over the cap** |
+
+`assets/js/selftest.js` (37,398 bytes) is QA-only: `calc.html` reaches it through
+a `?selftest` query check, so a visitor never fetches it and it is not counted.
+
+**Per-page total weight, for information only:**
+
+| page | bytes | gzipped JS |
 |---|---|---|
-| `index.html` | 65,996 | +15,924 |
-| `calc.html` | 94,461 | **-12,541** |
-| `about.html` | 32,849 | +49,071 |
+| `index.html` | 101,539 (99 KB) | 21,514 |
+| `calc.html` | 153,823 (150 KB) | 30,341 |
+| `about.html` | 85,247 (83 KB) | 10,568 |
 
-Per file on the calculator page:
-
-| file | bytes | |
-|---|---|---|
-| `fox.js` | 9,934 | Kitsu herself — untouchable |
-| `voice.js` | 9,985 | speech in and out — untouchable |
-| `engine.js` | 27,259 | 18,721 before the exact layer, +8,538 for it |
-| `calc.js` | 24,368 | 16,488 before 2d, +7,880 for it |
-| `background.js` | 22,915 | the solving-paper canvas, shared by all three pages |
-
-`assets/js/selftest.js` (36,595 bytes) is QA-only — `calc.html` loads it through
-a `?selftest` query check and a visitor never fetches it — so it is not counted.
+The whole site's JavaScript is **32,468 bytes gzipped** — what a visitor actually
+downloads, on any page, is at most 30 KB.
 
 **What was already taken, without losing a feature:** `background.js`
 `drawGrid` ran six near-identical stroke loops for one grid. It now builds
@@ -91,27 +100,33 @@ three segment lists per orientation and strokes each once: 440 bytes, and the
 code no longer repeats itself. `.verify/paper.cjs` 51/51 and `.verify/paper-rm.cjs`
 53/53 still pass, pixel comparisons included.
 
-**The trim proposal.** The budget cannot hold phase 2d as specified, and the
-overage is feature cost, not a regression. In order of leverage, and none of
-them touch Kitsu's lines, her steps, or the shipped logic:
+**The trim proposal (verbosity only — no line, step, error message or feature is
+proposed for removal).** Sized, not guessed. `background.js` breaks down as
+setup 4,097 · helpers 3,300 · grid 2,156 · curve 1,044 · plot 1,122 · nib 1,007 ·
+droplets 2,131 · stamps 988 · glyphs 1,379 · folded corner 931 · frame loop
+4,761.
 
-1. **Stop loading `background.js` on `calc.html`.** It is 22,915 bytes, or
-   27% of the page. Dropping it puts the calculator at **71,546 bytes**, which
-   is 10,374 under the cap with every 2d feature intact. The cost is visual,
-   not functional: the calculator page loses the graph paper, the ink curve,
-   the margin stamps and the folded corner. This is a design decision about
-   whether the calculator is still part of the paper, and it is not one to take
-   unilaterally.
-2. **Fold the two AST walks into one.** `exact()` in `engine.js` repeats the
-   shape of `evaluate()`'s `walk()`. One walker returning `{v, x}` would
-   remove the duplicated case structure, worth perhaps 1.5–2KB, at the cost of
-   touching every step site — which is where the narration lives.
-3. **Thin the flying ink.** The droplets in `background.js` are roughly 2.5KB
-   of pure decoration that no calculation can observe. It is the least
-   interesting thing on the page and the first thing nobody would miss.
+1. **Keep the cap and drop the paper.** Stop loading `background.js` on all
+   three pages: **-22,915**, site total **77,777**, 4,143 under the cap. Costs
+   the graph paper, ink curve, nib, droplets, margin stamps and folded corner —
+   the site's visual identity, not any feature. This is the only single change
+   that clears the cap.
+2. **Keep the paper but make it static graph paper only** — grid and plot, no
+   ink curve, nib, droplets, stamps, glyphs or fold, painted once instead of per
+   frame: about **-13,500**, site total **≈87,200**, still ≈5,300 **over**. Not
+   sufficient on its own; add option 3 and it is still ≈3,500 over.
+3. **Fold the two AST walks in `engine.js` into one** returning `{v, x}`:
+   **≈-1,800**, and it removes duplicated structure rather than content. The
+   price is touching every step site, which is where the narration lives, so it
+   needs the full gate re-run.
 
-Nothing above reaches 12,541 bytes on its own except option 1, and option 1 is
-a design call. A ruling is needed before any of them is taken.
+Even taking 1+2+3 in full only reaches the cap by removing the paper; there is
+no honest trim left inside the 2d feature set. So the choice is between the cap
+and the canvas, and it is a design ruling, not an engineering one. **No trim has
+been applied.** Option 4 — raise the cap to 105 KB and keep the site as shipped
+— is recorded in NOTES only because 100,692 unminified is 32,468 over the wire,
+and the constitution forbids the bundler that would make the source number small
+without the feature going away.
 
 ### 4. The Render deploy — DEFERRED BY DESIGN
 

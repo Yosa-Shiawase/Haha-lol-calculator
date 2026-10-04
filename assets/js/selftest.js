@@ -455,8 +455,14 @@
   function quickOps() {
     var g = 'quick ops';
 
+    /* the calculator opens on Exact, so the first answer says so; the rest of
+       the group reads in DEC, because these rows are about what the keys do */
     return solveKeys('4', '^-1').then(function (got) {
-      check(g, '1/x of 4', got, '0.25');
+      check(g, '1/x of 4 is exact by default', got, '1/4');
+      clickEq('data-exact', 'off');
+      return settle();
+    }).then(function () {
+      check(g, 'and one tap away is the decimal', shown(), '0.25');
       return solveKeys('7', '^2');
     }).then(function (got) {
       check(g, 'x² of 7', got, '49');
@@ -511,6 +517,9 @@
       return solveKeys('9', '+', '5', '%');
     }).then(function (got) {
       check(g, '9 + 5 % is a slice of the 9', got, '9.45');
+      /* hand the next group the face a visitor actually gets */
+      clickEq('data-exact', 'on');
+      check(g, 'Exact is the pressed one again', $('[data-exact="on"]').getAttribute('aria-pressed'), 'true');
     });
   }
 
@@ -618,6 +627,11 @@
     check(g, 'the disclosure opens', $('[data-settings]').getAttribute('data-open'), 'true');
     check(g, 'and says it is open', $('[data-settings-toggle]').getAttribute('aria-expanded'), 'true');
 
+    /* the two dials this group drives are the decimal ones, so the exact face
+       is switched off here; the exact layer has a group of its own */
+    clickEq('data-exact', 'off');
+    check(g, 'DEC is one tap away', $('[data-exact="off"]').getAttribute('aria-pressed'), 'true');
+
     return solveKeys('2', '÷', '3').then(function (got) {
       check(g, 'auto decimals by default', got, '0.666666667');
 
@@ -667,6 +681,10 @@
       check(g, 'exactly one decimals dial and one Sci dial are pressed',
         $$('[data-fix][aria-pressed="true"]').length +
         $$('[data-sci][aria-pressed="true"]').length, 2);
+
+      clickEq('data-exact', 'on');
+      check(g, 'and the exact face is back where it started',
+        $('[data-exact="on"]').getAttribute('aria-pressed'), 'true');
 
       clickAttr('data-settings-toggle');
       check(g, 'the disclosure closes again', $('[data-settings]').getAttribute('data-open'), 'false');
@@ -733,6 +751,15 @@
     ['(2/3)^0', 'deg', '1'],
     ['5!', 'deg', '120'],
     ['2 + 3 × 4', 'deg', '14'],
+    /* a percentage is a plain hundredth, except beside a + or a − where it is
+       a slice of the number it sits beside — and the exact walk must read % the
+       same way the decimal walk does */
+    ['10 % × 2', 'deg', '1/5'],
+    ['200 + 10 %', 'deg', '220'],
+    ['200 − 10 %', 'deg', '180'],
+    ['9 + 5 %', 'deg', '189/20'],
+    ['9 − 5 %', 'deg', '171/20'],
+    ['(10 %) × (200 + 10 %)', 'deg', '22'],
     /* the denominator bound, from both sides */
     ['1/10000', 'deg', '1/10000'],
     ['1/10001', 'deg', ''],
@@ -776,13 +803,20 @@
       Engine.solve('2/3 + 1/6', { mode: 'deg', exact: true }).steps[2].m,
       '0.666666667 + 0.166666667 = 5/6 = 0.833333333');
 
-    /* the toggle itself, through the real display */
-    check(g, 'Exact starts off', $('[data-exact="on"]').getAttribute('aria-pressed'), 'false');
+    /* the toggle itself, through the real display: exact is the face the
+       calculator opens on, and DEC is one tap away */
+    check(g, 'Exact starts on', $('[data-exact="on"]').getAttribute('aria-pressed'), 'true');
+    check(g, 'Decimal starts off', $('[data-exact="off"]').getAttribute('aria-pressed'), 'false');
 
     return solveKeys('2', '÷', '3', '+', '1', '÷', '6').then(function (got) {
-      check(g, 'decimal display first', got, '0.833333333');
+      check(g, 'exact display by default', got, '5/6');
 
+      /* one tap each way, on a live answer that is already on screen */
+      clickEq('data-exact', 'off');
+      check(g, 'one tap to decimal', shown(), '0.833333333');
       clickEq('data-exact', 'on');
+      check(g, 'one tap back to exact', shown(), '5/6');
+
       check(g, 'Exact is the pressed one', $('[data-exact="on"]').getAttribute('aria-pressed'), 'true');
       check(g, 'the live preview is exact', shown(), '5/6');
 
@@ -807,7 +841,8 @@
       });
     }).then(function (got) {
       check(g, 'past the bound it is decimal again', got, '0.000033333');
-      clickEq('data-exact', 'off');
+      /* the suite hands the next group the face a visitor actually gets */
+      clickEq('data-exact', 'on');
     });
   }
 

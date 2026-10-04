@@ -716,7 +716,7 @@
   setSecond(false);
   setFix(null);
   setSci(false);
-  setExact(false);
+  setExact(true);/* exact is what the calculator is for, so it opens on it */
   noteDial();/* a mouse user gets the caret straight away */
   if (window.matchMedia('(pointer: fine)').matches) {
     expr.focus({ preventScroll: true });
