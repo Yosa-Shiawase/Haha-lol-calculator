@@ -80,7 +80,7 @@ not `inert`.
 | `story.js` | 5,888 |
 | **total** | **100,692 — 18,772 over the cap** |
 
-`assets/js/selftest.js` (37,398 bytes) is QA-only: `calc.html` reaches it through
+`assets/js/selftest.js` (38,483 bytes) is QA-only: `calc.html` reaches it through
 a `?selftest` query check, so a visitor never fetches it and it is not counted.
 
 **Per-page total weight, for information only:**
