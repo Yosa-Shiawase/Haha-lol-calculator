@@ -22,6 +22,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<style>
+/* This rule used to sit in a @media (max-width: 520px) block in tokens.css, which
+   every page links. .sheet__row, .sheet__fox, .ladder and .keys exist only on
+   this page, so the block lives here now and nothing about this page reaches
+   index.html or calc.html. Moved verbatim — same selectors, same values. */
+
+@media (max-width: 520px) {
+  .sheet__row { grid-template-columns: 76px minmax(0, 1fr); gap: 14px; padding: 14px; }
+  .sheet__fox { width: 76px; }
+  .ladder, .keys { font-size: .88rem; }
+}
+</style>
 <script>document.documentElement.className += ' js';</script>
 </head>
 <body>
