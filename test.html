@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Haha-lol-calculator — self-test</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    gap: 14px;
+    padding: 40px 24px;
+    background: #F3ECDF;
+    color: #191411;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    text-align: center;
+  }
+  h1 { font-family: Fraunces, Georgia, serif; font-size: 1.6rem; margin: 0; }
+  p { max-width: 46ch; margin: 0; line-height: 1.6; }
+  a { color: #191411; text-decoration-color: #E0511A; text-decoration-thickness: 2px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: .9em; }
+</style>
+</head>
+<body>
+  <h1>Self-test</h1>
+  <p>
+    Loading the real calculator with the QA gate attached. The suite drives the
+    shipped DOM — it clicks the real keys — so a pass means the actual page
+    works.
+  </p>
+  <p>Once it loads, open the console and run <code>HAHA.test()</code>.</p>
+  <p><a href="calc.html?selftest">Go now if nothing happens</a></p>
+
+<script>
+/* This page exists only as a doorway. It deliberately carries no copy of the
+   calculator: the suite has to run against calc.html exactly as a visitor gets
+   it, with ?selftest attaching assets/js/selftest.js and nothing else. */
+location.replace('calc.html?selftest');
+</script>
+</body>
+</html>

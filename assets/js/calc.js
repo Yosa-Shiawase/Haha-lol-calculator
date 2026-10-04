@@ -23,7 +23,7 @@
   var padLabel = document.querySelector('[data-pad-label]');
   var anglesOut = document.querySelector('[data-angles]');
 
-  var state = { mode: 'deg', ans: 0, last: 0 };
+  var state = { mode: 'deg', ans: 0, last: 0, result: false, answered: false };
   var TAPE_MAX = 14;
 
   var SHORT = {
@@ -38,10 +38,91 @@
 
   var all = function (sel) { return [].slice.call(document.querySelectorAll(sel)); };
 
+  /* --- result state -------------------------------------------------------
+     After "=" lands the input still shows the finished expression, so what the
+     next press means has to be decided. It is decided once, here, and every
+     route in — keypad, keyboard, tape — goes through it, so they cannot
+     disagree:
+       an operator continues from the answer  ->  "Ans +"
+       anything that can begin an operand starts over  ->  ""
+     Editing by hand, backspace and Escape all leave the state behind. */
+
+  var CONTINUES = {
+    '+': 1, '\u2212': 1, '\u00d7': 1, '\u00f7': 1,
+    '^': 1, '!': 1, '^2': 1, '^-1': 1
+  };
+
+  function kindOf(token) { return CONTINUES[token] ? 'operator' : 'operand'; }
+
+  /* every single press ends here: result state first, then the insert */
+  function press(text, kind) {
+    if (state.result) {
+      state.result = false;
+      put(kind === 'operand' ? '' : (state.answered ? 'Ans' : ''));
+    }
+    insert(text);
+  }
+
+  /* --- ANS -----------------------------------------------------------------
+     Ans is only ever a whole operand, so it goes in where one is expected and
+     nowhere else: at the start, or straight after something that must be
+     followed by a value. Two independent guards, so "ansans" is not merely
+     unlikely but cannot be typed. */
+
+  var OPENS = '+-\u00d7\u00f7^!,(';
+
+  function expectsOperand(before) {
+    var b = before.replace(/\s+$/, '');
+    if (!b) return true;
+    return OPENS.indexOf(b[b.length - 1]) >= 0;
+  }
+
+  function ansFits() {
+    var before = expr.value.slice(0, caret()).replace(/\s+$/, '');
+    if (/\bans$/i.test(before)) return false;   /* already there: refuse */
+    return expectsOperand(before);               /* something before it: refuse */
+  }
+
+  function ansPress() {
+    if (state.result) {
+      /* continuing from the answer seeds Ans once; the next press has nowhere
+         to put a second one and says so */
+      state.result = false;
+      put(state.answered ? 'Ans' : '');
+      if (state.answered) refuse();
+      return;
+    }
+    if (!ansFits()) { refuse(); return; }
+    insert('Ans');
+  }
+
+  /* the display edge flashes once when a press was deliberately ignored */
+  function refuse() {
+    if (!display) return;
+    display.classList.remove('is-refuse');
+    void display.offsetWidth;
+    display.classList.add('is-refuse');
+    window.setTimeout(function () { display.classList.remove('is-refuse'); }, 340);
+  }
+
+  /* --- display guards ------------------------------------------------------
+     Nothing reaches the screen that a number cannot be. A poison string means
+     something upstream went wrong, and Kitsu says so rather than the page
+     showing the reader a raw NaN. */
+
+  var POISON = /NaN|undefined|\[object|Infinity/;
+
+  function safe(text) {
+    var s = String(text == null ? '' : text);
+    return POISON.test(s) ? null : s;
+  }
+
   /* display */
 
   function say(text, cls) {
-    valueOut.textContent = text;
+    var s = safe(text);
+    if (s === null) { s = 'Kitsu is stuck'; cls = 'is-error'; }
+    valueOut.textContent = s;
     valueOut.className = 'display__value' + (cls ? ' ' + cls : '');
   }/* the caret is tracked here, not read from the DOM: a key click blurs the field */
   var lastCaret = 0;
@@ -69,6 +150,7 @@
   }
 
   function backspace() {
+    state.result = false;
     var at = caret();
     if (at === 0) return;
     put(expr.value.slice(0, at - 1) + expr.value.slice(at));
@@ -76,6 +158,7 @@
   }
 
   function clearAll() {
+    state.result = false;
     put('');
     say('Kitsu is waiting');
     stepsList.textContent = '';
@@ -86,6 +169,10 @@
   }
 
   function sign() {
+    /* sign is an edit, not a keystroke that begins typing, so it works on the
+       expression that is sitting there and leaves result state behind — the
+       same way backspace does */
+    state.result = false;
     var v = expr.value;
     var at = caret();
     var m = /([0-9.]+)$/.exec(v.slice(0, at));
@@ -144,17 +231,20 @@
     if (!steps || !steps.length) return;
 
     steps.forEach(function (s, i) {
+      var mText = safe(s.m);
+      var nText = s.n ? safe(s.n) : null;
+      if (mText === null) return;           /* a step a number cannot spell is not a step */
       var li = document.createElement('li');
       li.className = 'step';
       li.style.animationDelay = (i * 40) + 'ms';
       var m = document.createElement('span');
       m.className = 'step__m';
-      m.textContent = s.m;
+      m.textContent = mText;
       li.appendChild(m);
-      if (s.n) {
+      if (nText) {
         var n = document.createElement('span');
         n.className = 'step__n';
-        n.textContent = s.n;
+        n.textContent = nText;
         li.appendChild(n);
       }
       stepsList.appendChild(li);
@@ -174,14 +264,16 @@
 
     var a = document.createElement('span');
     a.className = 'tape__expr';
-    a.textContent = raw;
+    a.textContent = safe(raw);
     var b = document.createElement('span');
     b.className = 'tape__val';
-    b.textContent = '= ' + text;
+    b.textContent = '= ' + safe(text);
 
     btn.appendChild(a);
     btn.appendChild(b);
     btn.addEventListener('click', function () {
+      /* the tape is for edit-and-rerun: it replaces the input, never appends */
+      state.result = false;
       put(raw);
       all('.tape__item').forEach(function (x) { x.classList.remove('is-cued'); });
       li.classList.add('is-cued');
@@ -228,6 +320,7 @@
     }
 
     put(raw);
+    state.result = false;
 
     var res;
     try {
@@ -242,6 +335,10 @@
 
     state.ans = res.value;
     state.last = res.value;
+    state.answered = true;
+    /* the input keeps the solved expression so it can be edited and re-run;
+       from here the next press either continues from the answer or starts over */
+    state.result = true;
 
     drawSteps(res.steps);
     addTape(raw, res.text);
@@ -262,12 +359,24 @@
   }
 
   all('[data-ins]').forEach(function (btn) {
-    btn.addEventListener('click', function () { hit(btn); insert(btn.getAttribute('data-ins')); });
+    btn.addEventListener('click', function () {
+      hit(btn);
+      var token = btn.getAttribute('data-ins');
+      press(token, kindOf(token));
+    });
   });
 
   all('[data-append]').forEach(function (btn) {
-    btn.addEventListener('click', function () { hit(btn); insert(btn.getAttribute('data-append')); });
+    btn.addEventListener('click', function () {
+      hit(btn);
+      var token = btn.getAttribute('data-append');
+      press(token, kindOf(token));
+    });
   });
+
+  /* Ans is not a string to insert: it is a decision about where one may go */
+  var ansBtn = document.querySelector('[data-ans]');
+  if (ansBtn) ansBtn.addEventListener('click', function () { hit(ansBtn); ansPress(); });
 
   var back = document.querySelector('[data-backspace]');
   if (back) back.addEventListener('click', function () { hit(back); backspace(); });
@@ -370,12 +479,15 @@
     if (TYPED[k] || /^[0-9a-z.]$/i.test(k)) {
       ev.preventDefault();
       expr.focus();
-      insert(TYPED[k] || k);
+      var token = TYPED[k] || k;
+      press(token, kindOf(token));
     }
   }
 
   document.addEventListener('keydown', onKey);
   expr.addEventListener('input', function () {
+    /* typing in the field is explicit editing, so it leaves result state */
+    state.result = false;
     lastCaret = expr.selectionStart === null ? expr.value.length : expr.selectionStart;
     preview();
   });

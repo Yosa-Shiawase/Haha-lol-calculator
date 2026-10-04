@@ -140,15 +140,75 @@
     return window.Engine ? window.Engine.normalizeInput(s) : s.trim();
   }
 
+  /* --- saying something went wrong ---------------------------------------
+     A button that quietly does nothing is worse than no button, so every way
+     the microphone can fail ends in a sentence on the page. Never in the
+     console only. */
+
+  function toast(text) {
+    var host = document.querySelector('[data-toasts]');
+    if (!host) return;
+    var el = document.createElement('p');
+    el.className = 'toast';
+    el.setAttribute('data-toast', '');
+    el.setAttribute('role', 'status');
+    el.textContent = text;
+    host.appendChild(el);
+    window.setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 6000);
+  }
+
+  function kitsuSays(text, mood) {
+    if (window.Kitsu) window.Kitsu.sayTo('dock', text, mood || 'oops');
+  }
+
+  var HEARD = {
+    'not-allowed': 'Microphone permission needed',
+    'service-not-allowed': 'Microphone permission needed',
+    'audio-capture': 'No microphone found on this device',
+    'network': 'Voice input needs a network connection'
+  };
+
+  var PATHS = {
+    'no-speech': function () {
+      kitsuSays('I did not hear anything — try again when you are ready.', 'oops');
+    },
+    'aborted': function () { kitsuSays('I stopped listening.', 'idle'); },
+    'language-not-supported': function () { kitsuSays('I do not know that language yet.', 'oops'); },
+    'default': function (why) {
+      kitsuSays('Voice input gave up: ' + (why || 'unknown') + '.', 'oops');
+    }
+  };
+
+  var LISTEN_MS = 9000;
+
   function hear(onText) {
-    if (!SR || listening) return;
+    if (!SR) {
+      toast('Voice input needs Chrome or Edge on https');
+      kitsuSays('I can only listen over https, in Chrome or Edge.', 'oops');
+      return;
+    }
+    if (listening) return;
+
     rec = new SR();
     rec.lang = 'en-US';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     listening = true;
 
+    /* if the mic is open but nobody says anything, that is a failure too —
+       without this the button sits on "Listening…" for ever */
+    var giveUp = window.setTimeout(function () {
+      if (!listening) return;
+      try { rec.stop(); } catch (e) { /* already gone */ }
+      listening = false;
+      PATHS['no-speech']();
+      syncMic();
+    }, LISTEN_MS);
+
     rec.onresult = function (e) {
+      window.clearTimeout(giveUp);
       var said = e.results[0][0].transcript;
       var expression = transcribe(said);
       listening = false;
@@ -157,14 +217,31 @@
       }));
       if (onText) onText(expression, said);
     };
-    rec.onerror = function () { listening = false; syncMic(); };
-    rec.onend = function () { listening = false; syncMic(); };
+
+    rec.onerror = function (e) {
+      window.clearTimeout(giveUp);
+      listening = false;
+      var why = (e && e.error) || 'unknown';
+      if (HEARD[why]) toast(HEARD[why]);
+      else if (PATHS[why]) PATHS[why]();
+      else PATHS.default(why);
+      syncMic();
+    };
+
+    rec.onend = function () {
+      window.clearTimeout(giveUp);
+      listening = false;
+      syncMic();
+    };
 
     try {
       rec.start();
       syncMic();
     } catch (e) {
+      window.clearTimeout(giveUp);
       listening = false;
+      toast('Voice input could not start on this browser');
+      kitsuSays('The microphone would not open.', 'oops');
       syncMic();
     }
   }
@@ -175,6 +252,7 @@
     var btn = document.querySelector('[data-mic]');
     if (!btn) return;
     btn.setAttribute('aria-pressed', listening ? 'true' : 'false');
+    btn.setAttribute('data-listening', listening ? 'true' : 'false');
     btn.textContent = listening ? 'Listening\u2026' : 'Talk to Kitsu';
   }
 
@@ -195,7 +273,13 @@
 
   function init() {
     var mic = document.querySelector('[data-mic]');
-    if (mic) mic.hidden = !SR;
+    /* the button stays on the page even where the browser cannot listen, so a
+       tap can say why instead of the control simply vanishing */
+    if (mic) {
+      mic.hidden = false;
+      if (!SR) mic.setAttribute('data-unsupported', 'true');
+      syncMic();
+    }
 
     if (synth) {
       voice = pickVoice();
@@ -226,6 +310,8 @@
     stop: stop,
     transcribe: transcribe,
     listen: hear,
+    toast: toast,
+    get listening() { return listening; },
     setEnabled: setEnabled
   };
 

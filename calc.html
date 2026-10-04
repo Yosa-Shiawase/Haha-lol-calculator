@@ -74,9 +74,12 @@
           <button type="button" class="switch__btn is-on" data-mode="deg" aria-pressed="true">DEG</button>
           <button type="button" class="switch__btn" data-mode="rad" aria-pressed="false">RAD</button>
         </div>
-        <button type="button" class="btn btn--sm" data-mic aria-pressed="false" hidden>Talk to Kitsu</button>
+        <button type="button" class="btn btn--sm" data-mic aria-pressed="false">Talk to Kitsu</button>
       </div>
     </aside>
+
+    <!-- voice failures are announced here, never swallowed in the console -->
+    <div class="toasts" data-toasts aria-live="polite" aria-atomic="false"></div>
 
     <section class="core" aria-label="Calculator">
       <div class="display">
@@ -162,7 +165,7 @@
         <button type="button" class="key" data-ins=".">.</button>
         <button type="button" class="key key--eq" data-solve>=</button>
         <button type="button" class="key key--op" data-ins="+">+</button>
-        <button type="button" class="key key--fn" data-ins="ans">ANS</button>
+        <button type="button" class="key key--fn" data-ans>ANS</button>
       </div>
     </section>
 
@@ -205,5 +208,13 @@
 <script src="assets/js/engine.js" defer></script>
 <script src="assets/js/calc.js" defer></script>
 <script src="assets/js/background.js" defer></script>
+<script>
+/* The QA gate is never shipped to a visitor. It attaches on demand — only when
+   the page is opened with ?selftest — so window.HAHA.test() exists in the
+   console for whoever is checking the build, and costs a normal visit nothing. */
+if (/[?&]selftest\b/.test(location.search)) {
+  document.write('<script src="assets/js/selftest.js"><\/script>');
+}
+</script>
 </body>
 </html>
