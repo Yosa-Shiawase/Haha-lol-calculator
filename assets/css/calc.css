@@ -48,6 +48,8 @@
 }
 
 .switch__btn {
+  min-height: 44px;   /* DEG/RAD and every other dial are thumb-sized, never
+                         a 37px sliver that a fingertip only grazes */
   padding: 8px 0;
   border-radius: var(--r-pill);
   font-family: var(--mono);
@@ -125,6 +127,8 @@
 .display__expr {
   display: block;
   width: 100%;
+  min-height: 44px;   /* it is a text input: tapping it puts the caret in it,
+                         so the line it draws is also its thumb target */
   padding: 0;
   border: 0;
   background: none;
@@ -324,6 +328,7 @@ main.calc ~ .foot {
 
 /* ---- the pad ---- */.padpage {
     display: inline-block;
+    min-height: 44px;
     margin-bottom: 7px;
     padding: 6px 16px;
   border: var(--bw) solid var(--ink);
@@ -448,6 +453,11 @@ main.calc ~ .foot {
   background: var(--card);
   border: var(--bw) solid var(--ink);
   border-radius: var(--r-md);
+  /* eleven chips plus two dials is taller than a laptop viewport once the
+     dock is sticky, and a sticky box taller than the screen can never be
+     scrolled the rest of the way: the panel scrolls inside itself instead */
+  max-height: 52vh;
+  overflow-y: auto;
 }
 
 .settings[data-open='true'] { display: block; }
@@ -466,11 +476,18 @@ main.calc ~ .foot {
 
 .settings__keys {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* four 44px columns: the widest row (four digits + gaps = 185px) fits the
+     sidebar panel's content box exactly, so nothing scrolls sideways, and the
+     grid refuses to shrink any cell below a thumb target */
+  grid-template-columns: repeat(4, minmax(44px, 1fr));
   gap: 3px;
 }
 
 .settings__key {
+  position: relative;   /* anchors this chip's own ::after hit-area — without
+                           it the pseudo-layer escapes to <main> and eats every
+                           click on the page */
+  min-height: 44px;
   padding: 5px 0;
   border: var(--bw) solid var(--ink);
   border-radius: 6px;
@@ -482,7 +499,14 @@ main.calc ~ .foot {
   transition: background var(--t-micro) var(--ease);
 }
 
-.settings__key--wide { grid-column: span 5; }
+/* five chips across a phone panel cannot all be 44px wide, so the visible
+   chip stays small and the thumb target is widened without moving anything */
+.settings__key::after {
+  content: "";
+  position: absolute;
+  inset: 0 -2px;
+}
+.settings__key--wide { grid-column: span 4; }
 
 .settings__key.is-on {
   background: var(--fox);
@@ -545,12 +569,21 @@ main.calc ~ .foot {
 .drawer__panel {
   max-height: 0;
   overflow: hidden;
-  transition: max-height var(--t-enter) var(--ease);
+  /* a collapsed panel is closed, not merely short: without this its links
+     stay focusable, stay hit-testable, and answer elementFromPoint from
+     underneath the tab that is drawn over them */
+  visibility: hidden;
+  pointer-events: none;
+  transition: max-height var(--t-enter) var(--ease),
+              visibility 0s linear var(--t-enter);
 }
 
 .drawer[data-open='true'] .drawer__panel {
   max-height: 62vh;
   overflow-y: auto;
+  visibility: visible;
+  pointer-events: auto;
+  transition: max-height var(--t-enter) var(--ease), visibility 0s linear 0s;
 }
 
 .drawer__hint {
@@ -565,10 +598,13 @@ main.calc ~ .foot {
 
 .drawer__help {
   margin: 0;
-  padding: 14px 18px 20px;
+  padding: 4px 18px 12px;
   border-top: var(--bw) solid var(--line);
   font-size: .82rem;
 }
+
+/* the link is the tap target, not the paragraph around it */
+.drawer__help a { display: inline-block; padding: 14px 0; }
 
 .steps {
   margin: 0;
@@ -614,6 +650,10 @@ main.calc ~ .foot {
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;   /* under 420px the label is visually hidden and this is
+                        a bare icon — it still has to be a full thumb target */
   gap: 8px;
   padding: 8px 14px;
   border: var(--bw) solid var(--ink);
@@ -676,6 +716,14 @@ main.calc ~ .foot {
      under the bar at the end of the scroll */
   main.calc ~ .foot { padding-bottom: 88px; }
 
+  /* …and the floating dock owns the footer's right side at the end of the
+     scroll. The keyboard hint ran under it and showed only in the gaps
+     between its controls — reading as stray sliced text beside Kitsu. The
+     hint keeps to the left of the dock: 212px is the dock's footprint
+     (196 wide + 12 right) at every phone width, since its width comes from
+     its content, not the viewport. */
+  main.calc ~ .foot .foot__in { padding-right: 212px; }
+
   .calc__grid { grid-template-columns: minmax(0, 1fr); }
 
   .core { padding: 16px 14px 18px; }
@@ -696,6 +744,9 @@ main.calc ~ .foot {
     border: 0;
     background: none;
     box-shadow: none;
+    /* the wrapper is hit-through so the padding and the gaps between the
+       controls never swallow a tap meant for the pad underneath — but every
+       control inside it has to take clicks back, or it is a dead button */
     pointer-events: none;
   }
 
@@ -707,7 +758,19 @@ main.calc ~ .foot {
       margin-bottom: 62px;
     }
 
-  .switch { min-width: 118px; pointer-events: auto; }/* the sheet and the floating dock are position:fixed inside main, and the
+    .switch { min-width: 118px; }
+
+    /* the pressable things: both dock buttons, the settings panel (it only
+       exists when open — a closed one is display:none and hits nothing), and
+       Kitsu herself (clicking her is the hop). Only these, so the gaps between
+       them stay clear. Without .settings its eleven chips and two dials would
+       inherit this wrapper's pointer-events:none and be dead on a phone. */
+    .dock .btn,
+    .dock .switch,
+    .dock .settings,
+    .dock .fox { pointer-events: auto; }
+
+    /* the sheet and the floating dock are position:fixed inside main, and the
        footer is a later sibling at the same z-index — without this they paint
        under the footer and quietly stop taking clicks. It also has to clear the
        masthead's z-index 4: main is a stacking context, so the backdrop's own

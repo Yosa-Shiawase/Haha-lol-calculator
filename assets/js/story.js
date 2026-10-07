@@ -136,6 +136,7 @@
   function pageWipe() {
     var layer = document.querySelector('[data-wipe-layer]');
     if (!layer) return;
+    var cancel = layer.querySelector('[data-wipe-cancel]');
     var go = 0;
     var giveUp = 0;
 
@@ -147,7 +148,12 @@
       layer.classList.remove('is-wiping');
       layer.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKey, true);
+      if (cancel) cancel.removeEventListener('click', onCancel);
     }
+
+    /* the Cancel button is the way out a thumb can find, and the layer's own
+       click deliberately steps over it, so it needs its own way out too */
+    function onCancel() { clear(); }
 
     function onKey(ev) {
       if (ev.key !== 'Escape') return;
@@ -167,6 +173,7 @@
         layer.classList.add('is-wiping');
         layer.addEventListener('click', onClick);
         document.addEventListener('keydown', onKey, true);
+        if (cancel) cancel.addEventListener('click', onCancel);
         giveUp = window.setTimeout(clear, 2500);
         go = window.setTimeout(function () { window.location.href = a.getAttribute('href'); }, 700);
       });

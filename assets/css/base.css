@@ -171,6 +171,7 @@ table {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  min-height: 44px;
   font-family: var(--disp);
   font-weight: 700;
   font-size: 1.06rem;
@@ -191,6 +192,9 @@ table {
 }
 
 .nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;   /* every control is at least a thumb, never a sliver */
   padding: 8px 14px;
   border-radius: var(--r-pill);
   font-size: .92rem;
@@ -251,7 +255,7 @@ table {
 .btn--fox:hover { color: var(--ink); }
 
 .btn--lg { padding: 17px 32px; font-size: 1.05rem; }
-.btn--sm { padding: 9px 16px; font-size: .88rem; box-shadow: var(--sh-sm); }
+.btn--sm { min-height: 44px; padding: 9px 16px; font-size: .88rem; box-shadow: var(--sh-sm); }
 
 /* ==========================================================================
    cards + section furniture
@@ -428,6 +432,9 @@ section { position: relative; }
   line-height: 1.45;
   position: relative;
   opacity: 0;
+  /* she is a status line, never a target: while she fades in or out she must
+     not sit over a button and take the tap that was meant for it */
+  pointer-events: none;
   transform: translateY(6px);
   transition: opacity var(--t-enter) var(--ease), transform var(--t-enter) var(--ease);
 }
@@ -1104,6 +1111,14 @@ kbd {
 }
 
 .foot__in p { margin: 0; }
+
+/* a footer link sits in a line of prose, but it is still a tap target: the
+   padding grows the touch box past 44px tall without moving the line it
+   belongs to */
+.foot__in a {
+  display: inline-block;
+  padding: 14px 0;
+}
 
 .foot__seal {
   margin-left: auto;

@@ -77,22 +77,23 @@ not `inert`.
 | `engine.js` | 27,543 |
 | `calc.js` | 24,427 |
 | `background.js` | 22,915 |
-| `story.js` | 5,888 |
-| **total** | **100,692 — 18,772 over the cap** |
+| `story.js` | 6,269 |
+| **total** | **101,073 — 19,153 over the cap** |
 
-`assets/js/selftest.js` (38,483 bytes) is QA-only: `calc.html` reaches it through
-a `?selftest` query check, so a visitor never fetches it and it is not counted.
+`assets/js/selftest.js` (51,214 bytes — grew with the hit-test sweep) is
+QA-only: `calc.html` reaches it through a `?selftest` query check, so a visitor
+never fetches it and it is not counted.
 
 **Per-page total weight, for information only:**
 
 | page | bytes | gzipped JS |
 |---|---|---|
-| `index.html` | 101,539 (99 KB) | 21,514 |
-| `calc.html` | 153,823 (150 KB) | 30,341 |
-| `about.html` | 85,247 (83 KB) | 10,568 |
+| `index.html` | 101,920 (100 KB) | 21,620 |
+| `calc.html` | 154,265 (151 KB) | 30,341 |
+| `about.html` | 85,935 (84 KB) | 10,568 |
 
-The whole site's JavaScript is **32,468 bytes gzipped** — what a visitor actually
-downloads, on any page, is at most 30 KB.
+The whole site's JavaScript is **30,096 bytes gzipped** — what a visitor actually
+downloads, on any page, is at most 29 KB.
 
 **What was already taken, without losing a feature:** `background.js`
 `drawGrid` ran six near-identical stroke loops for one grid. It now builds
@@ -107,14 +108,14 @@ droplets 2,131 · stamps 988 · glyphs 1,379 · folded corner 931 · frame loop
 4,761.
 
 1. **Keep the cap and drop the paper.** Stop loading `background.js` on all
-   three pages: **-22,915**, site total **77,777**, 4,143 under the cap. Costs
+   three pages: **-22,915**, site total **78,158**, 3,762 under the cap. Costs
    the graph paper, ink curve, nib, droplets, margin stamps and folded corner —
    the site's visual identity, not any feature. This is the only single change
    that clears the cap.
 2. **Keep the paper but make it static graph paper only** — grid and plot, no
    ink curve, nib, droplets, stamps, glyphs or fold, painted once instead of per
-   frame: about **-13,500**, site total **≈87,200**, still ≈5,300 **over**. Not
-   sufficient on its own; add option 3 and it is still ≈3,500 over.
+   frame: about **-13,500**, site total **≈87,600**, still ≈5,700 **over**. Not
+   sufficient on its own; add option 3 and it is still ≈3,900 over.
 3. **Fold the two AST walks in `engine.js` into one** returning `{v, x}`:
    **≈-1,800**, and it removes duplicated structure rather than content. The
    price is touching every step site, which is where the narration lives, so it
@@ -124,7 +125,7 @@ Even taking 1+2+3 in full only reaches the cap by removing the paper; there is
 no honest trim left inside the 2d feature set. So the choice is between the cap
 and the canvas, and it is a design ruling, not an engineering one. **No trim has
 been applied.** Option 4 — raise the cap to 105 KB and keep the site as shipped
-— is recorded in NOTES only because 100,692 unminified is 32,468 over the wire,
+— is recorded in NOTES only because 101,073 unminified is 30,096 over the wire,
 and the constitution forbids the bundler that would make the source number small
 without the feature going away.
 

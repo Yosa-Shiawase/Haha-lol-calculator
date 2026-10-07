@@ -846,16 +846,290 @@
     });
   }
 
+  /* ---- the hit-test sweep ------------------------------------------------
+
+     THE BLINDNESS CURE. A .click() from script does not care what is painted
+     on top: a covered button passes every programmatic test in this suite and
+     stays dead to a thumb. So the suite now asks the page the only question a
+     finger cares about — elementFromPoint(), the same lookup the browser uses
+     to route a real pointer. Every interactive element, in every state where
+     it is meant to be reachable, scrolled into view and probed at five points
+     across its face (centre + the four edge midpoints, so a strip across the
+     top of a button cannot hide). Anything other than the element itself or a
+     descendant of it fails and names the thief: tag, class, z-index,
+     pointer-events, text. A control whose computed pointer-events is none
+     fails too — it can render all it likes, no finger can ever take it.
+     Hidden and off-screen elements are COUNTED in the summary row, never
+     silently dropped: silence is how the original bug survived. */
+
+  var HIT_POINTS = [[0.5, 0.5], [0.5, 0.08], [0.5, 0.92], [0.08, 0.5], [0.92, 0.5]];
+  var HIT_SELECTOR = 'a[href],button,[role="button"],input:not([type=hidden]),select,textarea,' +
+    'summary,label,.tape__item,svg.fox';
+
+  function hitName(el) {
+    if (!el) return 'nothing';
+    if (el.id) return '#' + el.id;
+    var ins = el.getAttribute('data-ins');
+    if (ins != null) return 'key[' + ins + ']';
+    var cls = typeof el.className === 'string' ? el.className
+            : (el.className && el.className.baseVal) || '';
+    cls = cls.trim().split(/\s+/)[0];
+    return el.tagName.toLowerCase() + (cls ? '.' + cls : '');
+  }
+
+  function hitThief(el) {
+    if (!el) return 'nothing (the point falls outside every element)';
+    var s = getComputedStyle(el);
+    var cls = typeof el.className === 'string' ? el.className
+            : (el.className && el.className.baseVal) || '';
+    var txt = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+    return el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') +
+      (cls ? '.' + cls.trim().split(/\s+/).join('.') : '') +
+      (txt ? ' "' + txt + '"' : '') +
+      ' [z:' + s.zIndex + ' pe:' + s.pointerEvents + ' pos:' + s.position + ']';
+  }
+
+  function sweep(root, tag, g) {
+    var prev = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';   /* land instantly */
+
+    var list = root.querySelectorAll(HIT_SELECTOR);
+    var probed = 0, hidden = 0, dead = 0, stolen = 0;
+
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      var cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') { hidden++; continue; }
+
+      el.scrollIntoView({ block: 'center', inline: 'center' });
+      var r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2 || r.top < 0 || r.bottom > innerHeight) {
+        hidden++;   /* not rendered, or cannot be brought on screen — counted */
+        continue;
+      }
+      probed++;
+
+      if (cs.pointerEvents === 'none') {
+        dead++;   /* visible, but no finger can ever take it */
+        check(g, 'hit [' + tag + '] ' + hitName(el) + ' is takeable (pointer-events)',
+          'pointer-events:' + cs.pointerEvents, 'pointer-events:auto');
+        continue;
+      }
+
+      /* the part of the control a finger can actually reach: its rect
+         intersected with every clipping/scrolling ancestor. Content inside a
+         horizontal scroller (the history tape) may hang past the clip — the
+         clipped part is not dead, it is scrolled away, and the visible part
+         must still take the tap. */
+      var vis = { l: r.left, t: r.top, r: r.right, b: r.bottom };
+      for (var q2 = el.parentElement; q2; q2 = q2.parentElement) {
+        var q2s = getComputedStyle(q2);
+        if (q2s.overflow === 'visible' && q2s.overflowX === 'visible' && q2s.overflowY === 'visible') continue;
+        var q2r = q2.getBoundingClientRect();
+        vis.l = Math.max(vis.l, q2r.left);
+        vis.t = Math.max(vis.t, q2r.top);
+        vis.r = Math.min(vis.r, q2r.right);
+        vis.b = Math.min(vis.b, q2r.bottom);
+      }
+      if (vis.r - vis.l < 4 || vis.b - vis.t < 4) {
+        hidden++;   /* scrolled fully out of its clip — reachable by scrolling */
+        continue;
+      }
+
+      /* the fox is painted paths in a transparent box: her edges are
+         transparent by design, so she is probed where the handler lives */
+      var pts = el.tagName.toLowerCase() === 'svg' ? HIT_POINTS.slice(0, 1) : HIT_POINTS;
+      var got = null;
+      for (var p = 0; p < pts.length; p++) {
+        var x = vis.l + (vis.r - vis.l) * pts[p][0];
+        var y = vis.t + (vis.b - vis.t) * pts[p][1];
+        var hit = document.elementFromPoint(x, y);
+        if (hit && (hit === el || el.contains(hit))) continue;
+        got = hit;
+        break;
+      }
+      if (got) {
+        stolen++;
+        /* name the clip that let the thief through: the first ancestor that
+           actually cuts this control's box */
+        var clipper = null;
+        for (var q = el.parentElement; q; q = q.parentElement) {
+          var qs = getComputedStyle(q);
+          if (qs.overflow !== 'visible' || qs.overflowX !== 'visible' || qs.overflowY !== 'visible') {
+            clipper = q;
+            break;
+          }
+        }
+        var clipInfo = '';
+        if (clipper) {
+          var qr = clipper.getBoundingClientRect();
+          clipInfo = '; clipped by ' + hitName(clipper) + ' at ' +
+            Math.round(qr.left) + ',' + Math.round(qr.top) + ' ' +
+            Math.round(qr.width) + 'x' + Math.round(qr.height) +
+            ' scroll ' + clipper.scrollLeft + '/' + clipper.scrollTop +
+            ' content ' + clipper.scrollWidth + 'x' + clipper.scrollHeight;
+        }
+        /* the whole paint stack at the failing point: who is above whom */
+        var stack = '';
+        if (document.elementsFromPoint) {
+          var fx = r.left + r.width * 0.5, fy = r.top + r.height * 0.5;
+          stack = '; stack: ' + document.elementsFromPoint(fx, fy)
+            .slice(0, 6).map(hitName).join(' < ');
+        }
+        check(g, 'hit [' + tag + '] ' + hitName(el) + ' takes its own tap',
+          'thief: ' + hitThief(got) + ' (control at ' +
+            Math.round(r.left) + ',' + Math.round(r.top) + ' ' +
+            Math.round(r.width) + 'x' + Math.round(r.height) +
+            ', scroll ' + Math.round(scrollY) + clipInfo + stack + ')', 'itself');
+      }
+    }
+
+    check(g, 'hit-test sweep [' + tag + ']: ' + probed + ' probed, ' + hidden +
+      ' hidden/off-screen, ' + dead + ' dead, ' + stolen + ' stolen',
+      dead + stolen, 0);
+
+    document.documentElement.style.scrollBehavior = prev;
+  }
+
+  /* One REAL coordinate click at page coordinates. When a harness drives the
+     suite it provides window.__HAHA_HIT.mouse(x, y), which is CDP
+     Input.dispatchMouseEvent — literally the input the OS produces. Without a
+     harness the simulation is still honest: elementFromPoint() picks the
+     target (the browser's own hit-test), so a covered control still cannot
+     pass. Returns the element that received the click. */
+  function realClick(x, y) {
+    if (window.__HAHA_HIT && typeof window.__HAHA_HIT.mouse === 'function') {
+      return Promise.resolve(window.__HAHA_HIT.mouse(x, y)).then(function () {
+        return document.elementFromPoint(x, y);
+      });
+    }
+    ['mousedown', 'mouseup', 'click'].forEach(function (type) {
+      var target = document.elementFromPoint(x, y);   /* re-hit-test per event */
+      if (target) target.dispatchEvent(new MouseEvent(type, {
+        clientX: x, clientY: y, bubbles: true, cancelable: true, view: window
+      }));
+    });
+    return Promise.resolve(document.elementFromPoint(x, y));
+  }
+
+  function realClickAt(el) {
+    var prev = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';
+    el.scrollIntoView({ block: 'center', inline: 'nearest' });
+    var r = el.getBoundingClientRect();
+    return realClick(r.left + r.width / 2, r.top + r.height / 2).then(function (hit) {
+      document.documentElement.style.scrollBehavior = prev;
+      return hit;
+    }, function (err) {
+      document.documentElement.style.scrollBehavior = prev;
+      throw err;
+    });
+  }
+
   /* ---- 10. UI invariants ------------------------------------------------- */
 
   function invariants() {
     var g = 'ui';
 
-    return afterSolving('2 + 3 × 4').then(function () {
+    var toggle = $('[data-settings-toggle]');
+    var panel = $('[data-settings]');
+    var drawerTab = $('[data-drawer]');
+    var drawer = $('.drawer');
+    var mic = $('[data-mic]');
+
+    /* start from a known state: whatever an earlier group left open, shut */
+    if (toggle && panel && panel.getAttribute('data-open') === 'true') toggle.click();
+    if (drawerTab && drawerTab.getAttribute('aria-expanded') === 'true') drawerTab.click();
+
+    return tick(450)   /* let the close transitions land: mid-transition an
+                          element is neither open nor shut, and its
+                          pointer-events and visibility disagree with each
+                          other and with what a finger would find */
+      .then(function () {
+        /* state 1 — the page exactly as it ships */
+        sweep(document, 'page, panels closed', g);
+
+        /* state 2 — the second keypad page: its keys are display:none in state 1 */
+        var fnKey = $('[data-pad-toggle]');
+        if (fnKey) {
+          fnKey.click();
+          sweep(document, 'second keypad page', g);
+          fnKey.click();
+        }
+      })
+
+      /* state 3 — the display panel, opened by a REAL coordinate click */
+      .then(function () {
+        if (!toggle || !panel) return null;
+        return realClickAt(toggle).then(function () {
+          check(g, 'a real coordinate click on Display opens its panel',
+            panel.getAttribute('data-open'), 'true');
+          sweep($('.dock') || document, 'display panel open', g);
+          toggle.click();   /* restore: the suite continues with it shut */
+          check(g, 'the display panel shuts again', panel.getAttribute('data-open'), 'false');
+        });
+      })
+
+      /* state 4 — the steps drawer, opened, swept while open, shut again */
+      .then(function () {
+        if (!drawerTab || !drawer) return null;
+        if (drawerTab.getAttribute('aria-expanded') !== 'true') drawerTab.click();
+        check(g, 'the steps drawer opens', drawerTab.getAttribute('aria-expanded'), 'true');
+        return tick(450).then(function () {   /* the panel animates open */
+          sweep(drawer, 'steps drawer open', g);
+          drawerTab.click();
+          check(g, 'the steps drawer shuts again', drawerTab.getAttribute('aria-expanded'), 'false');
+        });
+      })
+
+      /* Talk to Kitsu with a real coordinate click: she listens, or the page
+         says why she cannot — never a button that silently does nothing */
+      .then(function () {
+        if (!mic || mic.hidden) return null;
+        return realClickAt(mic).then(function () { return tick(700); }).then(function () {
+          var listening = mic.getAttribute('aria-pressed') === 'true';
+          var toast = $('[data-toast]');
+          var unsupported = mic.getAttribute('data-unsupported') === 'true';
+          check(g, 'a real coordinate click on Talk to Kitsu listens or toasts a reason',
+            !!(listening || toast || unsupported), true);
+          if (toast) {
+            check(g, 'the reason is on the page, not only in the console',
+              toast.textContent.length > 0, true);
+          }
+        });
+      })
+
+      /* RAD with a real coordinate click — the visible result is the display */
+      .then(function () {
+        var rad = $('[data-mode="rad"]');
+        if (!rad) return null;
+        return realClickAt(rad).then(function () {
+          check(g, 'a real coordinate click on RAD flips the display',
+            $('[data-angles]').textContent, 'RAD');
+          check(g, 'RAD is the pressed one after a real click',
+            rad.getAttribute('aria-pressed'), 'true');
+          $('[data-mode="deg"]').click();   /* restore for the rest of the suite */
+          check(g, 'DEG is back for the rest of the suite',
+            $('[data-angles]').textContent, 'DEG');
+        });
+      })
+
+      /* the toast layer floats at z-index 40 over everything: a status, never
+         a control — it must pass every tap straight through */
+      .then(function () {
+        var host = $('[data-toasts]');
+        if (host) check(g, 'the toast layer passes taps through',
+          getComputedStyle(host).pointerEvents, 'none');
+      })
+
+      .then(function () {
+        return afterSolving('2 + 3 × 4');
+      })
+      .then(function () {
       check(g, 'Kitsu is happy after a solve', mood(), 'happy');
       check(g, 'the steps drawer lists the steps', JSON.stringify(steps()),
-        JSON.stringify(['3 × 4 = 12', '2 + 12 = 14']));
-      check(g, 'the tape gained an entry', $$('#tape .tape__item').length > 0, true);
+        JSON.stringify(['3 × 4 = 12', '2 + 12 = 14']));        check(g, 'the tape gained an entry', $$('#tape .tape__item').length > 0, true);
+        sweep($('#tape') || document, 'history tape with entries', g);
       check(g, 'the answer is not a raw artifact', isArtifact(shown()), false);
       check(g, 'the steps carry no raw artifact',
         steps().filter(isArtifact).length, 0);
