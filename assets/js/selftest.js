@@ -1210,14 +1210,98 @@
     return lines.join('\n');
   }
 
+  /* ---- the sweep-only suite: index.html and about.html --------------------
+
+     These pages carry no calculator, so what they run is the hit-test suite
+     itself: every interactive element, in every applicable state, plus one
+     real coordinate click that must produce a visible result. Same report,
+     same console watch, same pass/fail contract as the calc suite. */
+
+  function finish(logged, restore) {
+    check('console', 'zero console errors across the whole run',
+      logged.length === 0 ? 'clean' : JSON.stringify(logged), 'clean');
+    restore();
+    var report = results.slice();
+    var text = render(report);
+    if (window.console && console.log) console.log('\n' + text + '\n');
+    return {
+      total: report.length,
+      passed: report.filter(function (r) { return r.pass; }).length,
+      failed: report.filter(function (r) { return !r.pass; }).length,
+      consoleErrors: logged,
+      results: report,
+      text: text
+    };
+  }
+
+  function sweepOnly(logged, restore) {
+    var g = 'hit test';
+
+    sweep(document, 'page as it ships', g);
+
+    /* index only: show the page-wipe layer for the probe without starting
+       its 700ms navigation timer — that timer belongs to pageWipe() */
+    var layer = document.querySelector('[data-wipe-layer]');
+    if (layer) {
+      layer.classList.add('is-wiping');
+      sweep($('.wipe') || document, 'page-wipe layer shown', g);
+      layer.classList.remove('is-wiping');
+    }
+
+    var minipad = document.querySelector('[data-go]');
+    if (minipad) {
+      /* index: the mini-pad is the page's only stateful control */
+      return realClickAt(minipad).then(function () {
+        check(g, 'a real coordinate click on the mini-pad solves 7 × 8',
+          $('[data-pad-out]').textContent.trim(), '56');
+      }).then(function () { return finish(logged, restore); });
+    }
+
+    var skip = document.querySelector('a.skip[href^="#"]');
+    if (skip) {
+      /* about: the skip link ships at top:-60px — above the viewport on
+         purpose — and slides down only on focus, so reach it the way a
+         keyboard user does. Then it is a real link like any other: one
+         coordinate click jumps the document to #main in place instead of
+         navigating away. */
+      var hiddenTop = skip.getBoundingClientRect().top;
+      skip.focus();
+      return tick(400)   /* the focus slide (var(--t-enter) = 260ms) lands */
+        .then(function () {
+          check(g, 'the skip link waits off-screen until it is focused',
+            hiddenTop < 0 ? 'hidden' : 'visible at ' + Math.round(hiddenTop) + 'px',
+            'hidden');
+          var prevSb = document.documentElement.style.scrollBehavior;
+          document.documentElement.style.scrollBehavior = 'auto';   /* the
+             page scrolls smoothly — land instantly or we measure the ride */
+          skip.scrollIntoView({ block: 'center', inline: 'nearest' });
+          var r = skip.getBoundingClientRect();
+          document.documentElement.style.scrollBehavior = prevSb;
+          check(g, 'focus brings the skip link into the viewport',
+            r.top >= 0 && r.top < window.innerHeight ? 'revealed'
+              : 'still off-screen at ' + Math.round(r.top) + 'px',
+            'revealed');
+          return realClickAt(skip);
+        })
+        .then(function () { return tick(150); })
+        .then(function () {
+          check(g, 'a real coordinate click on the skip link lands on #main',
+            location.hash, '#main');
+        })
+        .then(function () { return finish(logged, restore); });
+    }
+
+    return Promise.resolve(finish(logged, restore));
+  }
+
   function run() {
     results = [];
     var logged = [];
     var restore = watchConsole(logged);
 
     if (!$('#expr')) {
-      restore();
-      return Promise.reject(new Error('selftest.js needs to run on calc.html'));
+      /* index.html / about.html: the sweep suite is the whole suite */
+      return sweepOnly(logged, restore);
     }
 
     return sweepButtons()

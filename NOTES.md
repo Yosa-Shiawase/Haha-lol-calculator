@@ -80,20 +80,20 @@ not `inert`.
 | `story.js` | 6,269 |
 | **total** | **101,073 — 19,153 over the cap** |
 
-`assets/js/selftest.js` (51,214 bytes — grew with the hit-test sweep) is
-QA-only: `calc.html` reaches it through a `?selftest` query check, so a visitor
-never fetches it and it is not counted.
+`assets/js/selftest.js` (54,863 bytes — grew again when the suite went
+multi-page) is QA-only: every page reaches it through a `?selftest` query
+check, so a visitor never fetches it and it is not counted.
 
 **Per-page total weight, for information only:**
 
 | page | bytes | gzipped JS |
 |---|---|---|
-| `index.html` | 101,920 (100 KB) | 21,620 |
-| `calc.html` | 154,265 (151 KB) | 30,341 |
-| `about.html` | 85,935 (84 KB) | 10,568 |
+| `index.html` | 102,858 (100 KB) | 21,620 |
+| `calc.html` | 157,578 (154 KB) | 30,341 |
+| `about.html` | 86,873 (85 KB) | 10,568 |
 
 The whole site's JavaScript is **30,096 bytes gzipped** — what a visitor actually
-downloads, on any page, is at most 29 KB.
+downloads, on any page, is at most 30 KB.
 
 **What was already taken, without losing a feature:** `background.js`
 `drawGrid` ran six near-identical stroke loops for one grid. It now builds
